@@ -1,0 +1,11 @@
+[requires]
+glfw/3.4
+[generators]
+CMakeDeps
+CMakeToolchain
+[layout]
+cmake_layout
+[options]
+glfw/3.4:shared=True
+[imports]
+bin, *.dll -> ./bin

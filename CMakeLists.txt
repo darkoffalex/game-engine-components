@@ -13,6 +13,9 @@ project(GameEngineComponents)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Найти нужные пакеты
+find_package(glfw3 REQUIRED)
+
 # Устанавливаем каталоги для бинарников
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -20,9 +23,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # Статическое связывание для runtime библиотеками (размер итоговых файлов будет больше)
 set(STATIC_RUNTIME OFF)
-
-# Пути к файлам включаемых директорий
-include_directories(include)
 
 # Определить архитектуру/разрядность
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -67,3 +67,4 @@ endfunction()
 
 # Добавить под-проекты
 add_subdirectory(sources/ecs)
+add_subdirectory(sources/rendering)
