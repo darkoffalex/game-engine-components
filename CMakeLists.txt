@@ -13,6 +13,10 @@ project(GameEngineComponents)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Пути для обнаружения модулей
+set(CMAKE_PREFIX_PATH build/Debug/generators build/generators)
+set(CMAKE_MODULE_PATH build/Debug/generators build/generators)
+
 # Найти нужные пакеты
 find_package(glfw3 REQUIRED)
 
