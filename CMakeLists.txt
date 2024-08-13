@@ -17,6 +17,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH build/Debug/generators build/generators)
 set(CMAKE_MODULE_PATH build/Debug/generators build/generators)
 
+# Локальные дополнительные заголовки
+include_directories(BEFORE include)
+
 # Найти нужные пакеты
 find_package(glfw3 REQUIRED)
 
