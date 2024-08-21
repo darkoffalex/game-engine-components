@@ -22,6 +22,7 @@ include_directories(BEFORE include)
 
 # Найти нужные пакеты
 find_package(glfw3 REQUIRED)
+find_package(glm REQUIRED)
 
 # Устанавливаем каталоги для бинарников
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

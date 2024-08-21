@@ -1,6 +1,9 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+
+#include "utils/gl/shader.hpp"
 
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
@@ -20,7 +23,9 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, i
 void check_input(GLFWwindow* window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
         glfwSetWindowShouldClose(window, true);
+    }
 }
 
 /**
@@ -39,8 +44,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     }
 
     // Подготовка GLFW для работы с OpenGL
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Создать основное окно
