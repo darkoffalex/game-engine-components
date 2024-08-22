@@ -62,7 +62,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Загрузка OpenGL функций (GLAD)
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;

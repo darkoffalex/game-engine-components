@@ -2,9 +2,11 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <stdexcept>
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <cassert>
 
 namespace utils::gl
 {
@@ -31,9 +33,9 @@ namespace utils::gl
 
             // Создать и скомпилировать шейдеры из исходных текстов
             std::vector<GLuint> shader_ids;
-            for(auto& item : sources)
+            for(auto& [type, source] : sources)
             {
-                GLuint sid = compile_shader_source(item.first, item.second);
+                GLuint sid = compile_shader_source(type, source);
                 glAttachShader(this->id_, sid);
                 shader_ids.push_back(sid);
             }
@@ -82,7 +84,6 @@ namespace utils::gl
         {
             other.id_ = 0;
             other.locations_ = {};
-            other.location_names_.clear();
         }
 
         /**
@@ -107,7 +108,6 @@ namespace utils::gl
 
             std::swap(this->id_, other.id_);
             std::swap(this->locations_, other.locations_);
-            std::swap(this->location_names_, other.location_names_);
 
             return *this;
         }
@@ -174,7 +174,7 @@ namespace utils::gl
          * @param source Исходный текст шейдера
          * @return Идентификатор созданного шейдера
          */
-        static GLuint compile_shader_source(GLuint type, const std::string& source)
+        static GLuint compile_shader_source(const GLuint type, const std::string& source)
         {
             const GLuint id = glCreateShader(type);
             const GLchar* source_ptr = source.c_str();
