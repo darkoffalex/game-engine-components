@@ -19,12 +19,17 @@ namespace utils::gl
     class Shader final
     {
     public:
+        // Ассоциативный массив (тип - исходник)
+        using Sources = std::unordered_map<GLuint, std::string>;
+        // Список наименований uniform переменных
+        using Uniforms = std::vector<std::string>;
+
         /**
          * Основной конструктор
          * @param sources Ассоциативный массив исходников (тип - исходник)
          * @param uniforms Наименования uniform переменных в шейдере (с учетом порядка и кол-ва в структуре L)
          */
-        explicit Shader(const std::unordered_map<GLuint, std::string>& sources, const std::vector<std::string>& uniforms)
+        explicit Shader(const Sources& sources, const Uniforms& uniforms)
         : id_()
         , locations_({})
         {

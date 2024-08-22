@@ -11,7 +11,7 @@
  * @param width Ширина
  * @param height Высота
  */
-void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height)
+void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int width, const int height)
 {
     glViewport(0, 0, width, height);
 }
