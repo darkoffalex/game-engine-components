@@ -105,12 +105,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             // Проверка ввода
             check_input(window);
 
-            // Задачть цвет очистки буфера
+            // Задать цвет очистки буфера
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             // Очистка буфера
             glClear(GL_COLOR_BUFFER_BIT);
 
-            // Ипользовать шейдер
+            // Использовать шейдер
             glUseProgram(shader.id());
             // Привязать геометрию
             glBindVertexArray(geometry.vao_id());

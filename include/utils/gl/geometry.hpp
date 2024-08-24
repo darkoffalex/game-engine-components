@@ -13,7 +13,7 @@ namespace utils::gl
         // Номер положения (location у шейдера)
         GLuint location = 0;
         // Кол-во компонентов (например, для vec3 будет 3 компонента)
-        GLint componnent_count = 0;
+        GLint component_count = 0;
         // Тип компонентов (float, int, прочие)
         GLenum component_type = GL_FLOAT;
         // Автоматически нормализовать перед подачей в шейдер
@@ -40,15 +40,15 @@ namespace utils::gl
             : vbo_id_(0)
             , ebo_id_(0)
             , vao_id_(0)
-            , vertext_count_(0)
+            , vertex_count_(0)
             , index_count_(0)
         {
-            // Информация для дальнейшего использования (например, при отрисовке)
-            vertext_count_ = static_cast<GLsizei>(vertices.size());
+            // Информация для дальнейшего использования (например, при рисовании)
+            vertex_count_ = static_cast<GLsizei>(vertices.size());
             index_count_ = static_cast<GLsizei>(vertices.size());
 
             // Убелиться в корректности данных
-            assert(vertext_count_ > 0);
+            assert(vertex_count_ > 0);
             assert(index_count_ > 0);
 
             // Генерация необходимых ресурсов OpenGL (vertex buffer, element buffer, vertex array object)
@@ -59,9 +59,9 @@ namespace utils::gl
             // Работа с VAO
             glBindVertexArray(vao_id_);
 
-            // Приавзка буффера вершин
+            // Привязка буфера вершин
             glBindBuffer(GL_ARRAY_BUFFER, vbo_id_);
-            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof(V) * vertext_count_), vertices.data(), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof(V) * vertex_count_), vertices.data(), GL_STATIC_DRAW);
 
             // Привязка буфера индексов
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_id_);
@@ -88,13 +88,13 @@ namespace utils::gl
             : vbo_id_(0)
             , ebo_id_(0)
             , vao_id_(0)
-            , vertext_count_(0)
+            , vertex_count_(0)
             , index_count_(0)
         {
             other.vao_id_ = 0;
             other.ebo_id_ = 0;
             other.vao_id_ = 0;
-            other.vertext_count_ = 0;
+            other.vertex_count_ = 0;
             other.index_count_ = 0;
         }
 
@@ -109,7 +109,7 @@ namespace utils::gl
             vbo_id_ = 0;
             ebo_id_ = 0;
             vao_id_ = 0;
-            vertext_count_ = 0;
+            vertex_count_ = 0;
             index_count_ = 0;
         }
 
@@ -135,13 +135,13 @@ namespace utils::gl
             vbo_id_ = 0;
             ebo_id_ = 0;
             vao_id_ = 0;
-            vertext_count_ = 0;
+            vertex_count_ = 0;
             index_count_ = 0;
 
             std::swap(vbo_id_, other.vbo_id_);
             std::swap(ebo_id_, other.ebo_id_);
             std::swap(vao_id_, other.vao_id_);
-            std::swap(vertext_count_, other.vertext_count_);
+            std::swap(vertex_count_, other.vertex_count_);
             std::swap(index_count_, other.index_count_);
 
             return *this;
@@ -180,7 +180,7 @@ namespace utils::gl
          */
         [[nodiscard]] GLsizei vertex_count() const
         {
-            return vertext_count_;
+            return vertex_count_;
         }
 
         /**
@@ -199,10 +199,10 @@ namespace utils::gl
          */
         void setup_vertex_attributes(const std::vector<VertexAttributeInfo>& attributes) const
         {
-            for(const auto&[location, componnent_count, component_type, normalize, offset] : attributes)
+            for(const auto&[location, component_count, component_type, normalize, offset] : attributes)
             {
                 glVertexAttribPointer(location
-                    , componnent_count
+                    , component_count
                     , component_type
                     , normalize
                     , sizeof(V)
@@ -217,7 +217,7 @@ namespace utils::gl
         GLuint vbo_id_;             // OpenGL дескриптор вершинного буфера
         GLuint ebo_id_;             // OpenGL дескриптор индексного буфера
         GLuint vao_id_;             // OpenGL дескриптор VAO объекта
-        GLsizei vertext_count_;     // Кол-во вершин
+        GLsizei vertex_count_;     // Кол-во вершин
         GLsizei index_count_;       // Кол-во индексов
     };
 }
