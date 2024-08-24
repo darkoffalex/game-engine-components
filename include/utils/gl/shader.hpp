@@ -70,7 +70,7 @@ namespace utils::gl
             }
 
             // Получить ID'ы uniform-переменных
-            init_uniform_locations(uniforms);
+            if(!uniforms.empty()) init_uniform_locations(uniforms);
         }
 
         /**
@@ -89,6 +89,16 @@ namespace utils::gl
         {
             other.id_ = 0;
             other.locations_ = {};
+        }
+
+        /**
+         * Уничтожает OpenGL ресурс
+         */
+        ~Shader()
+        {
+            if (id_) glDeleteProgram(id_);
+            id_ = 0;
+            locations_ = {};
         }
 
         /**
@@ -115,16 +125,6 @@ namespace utils::gl
             std::swap(this->locations_, other.locations_);
 
             return *this;
-        }
-
-        /**
-         * Уничтожает OpenGL ресурс
-         */
-        ~Shader()
-        {
-            if (id_) glDeleteProgram(id_);
-            id_ = 0;
-            locations_ = {};
         }
 
         /**

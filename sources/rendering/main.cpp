@@ -4,6 +4,17 @@
 #include <glm/glm.hpp>
 
 #include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
+#include "utils/files/load.hpp"
+
+struct Vertex
+{
+    glm::vec3 position;
+    glm::vec3 color;
+};
+
+struct ShaderUniforms
+{};
 
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
@@ -11,22 +22,13 @@
  * @param width Ширина
  * @param height Высота
  */
-void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int width, const int height)
-{
-    glViewport(0, 0, width, height);
-}
+void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height);
 
 /**
  * Обработка пользовательского ввода
  * @param window Окно
  */
-void check_input(GLFWwindow* window)
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
+void check_input(GLFWwindow* window);
 
 /**
  * Точка входа
@@ -68,22 +70,82 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         return -1;
     }
 
-    // Покуда окно не должно быть закрыто
-    while(!glfwWindowShouldClose(window))
+    // Основная часть
+    try
     {
-        // Проверка ввода
-        check_input(window);
+        // Загрузить исходные коды шейдеров
+        const std::unordered_map<GLuint, std::string> shader_sources = {
+            {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/triangle/shaders/base.vert")},
+            {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/triangle/shaders/base.frag")}
+        };
 
-        // Рендеринг
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // Создать OpenGL ресурс шейдера из исходников
+        utils::gl::Shader<ShaderUniforms, GLint> shader(shader_sources,{});
 
-        // Смена буферов, опрос оконных событий
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        // Данные о геометрии (хардкод, обычно загружается из файлов)
+        const std::vector<GLuint> indices = {0,1,2};
+        const std::vector<Vertex> vertices = {
+            {{-1.0f, -1.0f, 0.0f},{1.0f, 0.0f,0.0f}},
+            {{0.0f, 1.0f, 0.0f},{0.0f, 1.0f,0.0f}},
+            {{1.0f, -1.0f, 0.0f},{0.0f, 0.0f,1.0f}},
+        };
+
+        // Описание атрибутов шейдера
+        const std::vector<utils::gl::VertexAttributeInfo> attributes = {
+            {0,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, position)},
+            {1,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, color)}
+        };
+
+        // Создать OpenGL ресурс геометрических буферов из данных
+        utils::gl::Geometry<Vertex> geometry(vertices, indices, attributes);
+
+        // Покуда окно не должно быть закрыто
+        while(!glfwWindowShouldClose(window))
+        {
+            // Проверка ввода
+            check_input(window);
+
+            // Задачть цвет очистки буфера
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            // Очистка буфера
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            // Ипользовать шейдер
+            glUseProgram(shader.id());
+            // Привязать геометрию
+            glBindVertexArray(geometry.vao_id());
+            // Нарисовать геометрию
+            glDrawElements(GL_TRIANGLES, geometry.index_count(), GL_UNSIGNED_INT, nullptr);
+
+            // Смена буферов, опрос оконных событий
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
+
+        // Выгрузить все OpenGL ресурсы
+        shader.~Shader();
+        geometry.~Geometry();
+    }
+    catch(std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+        return -1;
     }
 
     // Завершить работу с GLFW
     glfwTerminate();
     return 0;
+}
+
+void check_input(GLFWwindow* window)
+{
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+}
+
+void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int width, const int height)
+{
+    glViewport(0, 0, width, height);
 }
