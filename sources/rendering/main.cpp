@@ -70,67 +70,77 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         return -1;
     }
 
-    // Основная часть
+    // Шейдер и геометрия (пустые обертки над OpenGL ресурсами, инициализируются позже)
+    utils::gl::Shader<ShaderUniforms, GLint> shader;
+    utils::gl::Geometry<Vertex> geometry;
+
+    // Загрузить необходимые ресурсы
     try
     {
         // Загрузить исходные коды шейдеров
         const std::unordered_map<GLuint, std::string> shader_sources = {
-            {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/triangle/shaders/base.vert")},
-            {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/triangle/shaders/base.frag")}
+                {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/triangle/shaders/base.vert")},
+                {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/triangle/shaders/base.frag")}
         };
 
         // Создать OpenGL ресурс шейдера из исходников
-        utils::gl::Shader<ShaderUniforms, GLint> shader(shader_sources,{});
+        shader = utils::gl::Shader<ShaderUniforms, GLint>(shader_sources,{});
+
 
         // Данные о геометрии (хардкод, обычно загружается из файлов)
         const std::vector<GLuint> indices = {0,1,2};
         const std::vector<Vertex> vertices = {
-            {{-1.0f, -1.0f, 0.0f},{1.0f, 0.0f,0.0f}},
-            {{0.0f, 1.0f, 0.0f},{0.0f, 1.0f,0.0f}},
-            {{1.0f, -1.0f, 0.0f},{0.0f, 0.0f,1.0f}},
+                {{-1.0f, -1.0f, 0.0f},{1.0f, 0.0f,0.0f}},
+                {{0.0f, 1.0f, 0.0f},{0.0f, 1.0f,0.0f}},
+                {{1.0f, -1.0f, 0.0f},{0.0f, 0.0f,1.0f}},
         };
 
         // Описание атрибутов шейдера
         const std::vector<utils::gl::VertexAttributeInfo> attributes = {
-            {0,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, position)},
-            {1,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, color)}
+                {0,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, position)},
+                {1,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, color)}
         };
 
         // Создать OpenGL ресурс геометрических буферов из данных
-        utils::gl::Geometry<Vertex> geometry(vertices, indices, attributes);
+        geometry =  utils::gl::Geometry<Vertex>(vertices, indices, attributes);
 
-        // Покуда окно не должно быть закрыто
-        while(!glfwWindowShouldClose(window))
-        {
-            // Проверка ввода
-            check_input(window);
-
-            // Задать цвет очистки буфера
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            // Очистка буфера
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            // Использовать шейдер
-            glUseProgram(shader.id());
-            // Привязать геометрию
-            glBindVertexArray(geometry.vao_id());
-            // Нарисовать геометрию
-            glDrawElements(GL_TRIANGLES, geometry.index_count(), GL_UNSIGNED_INT, nullptr);
-
-            // Смена буферов, опрос оконных событий
-            glfwSwapBuffers(window);
-            glfwPollEvents();
-        }
-
-        // Выгрузить все OpenGL ресурсы
-        shader.~Shader();
-        geometry.~Geometry();
     }
     catch(std::exception& ex)
     {
         std::cout << ex.what() << std::endl;
         return -1;
     }
+
+    // Убедиться в готовности ресурсов
+    assert(shader.initialized());
+    assert(geometry.initialized());
+
+    // Покуда окно не должно быть закрыто
+    while(!glfwWindowShouldClose(window))
+    {
+        // Проверка ввода
+        check_input(window);
+
+        // Задать цвет очистки буфера
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        // Очистка буфера
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // Использовать шейдер
+        glUseProgram(shader.id());
+        // Привязать геометрию
+        glBindVertexArray(geometry.vao_id());
+        // Нарисовать геометрию
+        glDrawElements(GL_TRIANGLES, geometry.index_count(), GL_UNSIGNED_INT, nullptr);
+
+        // Смена буферов, опрос оконных событий
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    // Выгрузить все OpenGL ресурсы
+    shader.~Shader();
+    geometry.~Geometry();
 
     // Завершить работу с GLFW
     glfwTerminate();

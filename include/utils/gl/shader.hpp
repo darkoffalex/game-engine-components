@@ -19,19 +19,22 @@ namespace utils::gl
     class Shader final
     {
     public:
-        // Ассоциативный массив (тип - исходник)
-        using Sources = std::unordered_map<GLuint, std::string>;
-        // Список наименований uniform переменных
-        using Uniforms = std::vector<std::string>;
+        /**
+         * Конструктор по умолчанию
+         * Не создает ресурс OpenGL, создает пустой объект
+         */
+        Shader(): initialized_(false), id_(0), locations_({})
+        {}
 
         /**
          * Основной конструктор
          * @param sources Ассоциативный массив исходников (тип - исходник)
          * @param uniforms Наименования uniform переменных в шейдере (с учетом порядка и кол-ва в структуре L)
          */
-        explicit Shader(const Sources& sources, const Uniforms& uniforms)
-        : id_()
-        , locations_({})
+        Shader(const std::unordered_map<GLuint, std::string>& sources, const std::vector<std::string>& uniforms)
+            : initialized_(false)
+            , id_(0)
+            , locations_({})
         {
             // Создать программу
             id_ = glCreateProgram();
@@ -71,6 +74,9 @@ namespace utils::gl
 
             // Получить ID'ы uniform-переменных
             if(!uniforms.empty()) init_uniform_locations(uniforms);
+
+            // Готово к использованию
+            initialized_ = true;
         }
 
         /**
@@ -84,9 +90,11 @@ namespace utils::gl
          * @param other Другой объект
          */
         Shader(Shader&& other) noexcept
-        : id_(other.id_)
-        , locations_(other.locations_)
+            : initialized_(other.initialized_)
+            , id_(other.id_)
+            , locations_(other.locations_)
         {
+            other.initialized_ = false;
             other.id_ = 0;
             other.locations_ = {};
         }
@@ -97,6 +105,8 @@ namespace utils::gl
         ~Shader()
         {
             if (id_) glDeleteProgram(id_);
+
+            initialized_ = false;
             id_ = 0;
             locations_ = {};
         }
@@ -118,9 +128,12 @@ namespace utils::gl
             if (&other == this) return *this;
 
             if (id_) glDeleteProgram(id_);
+
+            initialized_ = false;
             id_ = 0;
             locations_ = {};
 
+            std::swap(this->initialized_, other.initialized_);
             std::swap(this->id_, other.id_);
             std::swap(this->locations_, other.locations_);
 
@@ -143,6 +156,15 @@ namespace utils::gl
         [[nodiscard]] const L& uniform_locations() const
         {
             return locations_;
+        }
+
+        /**
+         * Получить готовность к использованию
+         * @return Статус инициализации
+         */
+        [[nodiscard]] bool initialized() const
+        {
+            return initialized_;
         }
 
     protected:
@@ -208,9 +230,8 @@ namespace utils::gl
         }
 
     private:
-        // Идентификатор ресурса OpenGL
-        GLuint id_;
-        // Структура идентификаторов uniform-переменных
-        L locations_;
+        bool initialized_;  // Готовность к использованию
+        GLuint id_;         // OpenGL дескриптор шейдерной программы
+        L locations_;       // Структура идентификаторов uniform-переменных
     };
 }

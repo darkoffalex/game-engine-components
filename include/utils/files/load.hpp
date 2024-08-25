@@ -19,14 +19,11 @@ namespace utils::files
             throw std::runtime_error("Cant open file \"" + path + "\"");
         }
 
-        std::ifstream ifstream;
-        ifstream.open(path);
-
-        if (!ifstream.fail())
+        if (std::ifstream is(path, std::ios::in); !is.fail())
         {
             std::stringstream ss;
-            ss << ifstream.rdbuf();
-            ifstream.close();
+            ss << is.rdbuf();
+            is.close();
 
             return ss.str();
         }
