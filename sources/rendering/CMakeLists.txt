@@ -1,7 +1,11 @@
 # Добавить проект (исполняемый файл)
 add_executable("Rendering"
         main.cpp
-        glad.cpp)
+        glad.cpp
+
+        triangle/triangle.h
+        triangle/triangle.cpp
+)
 
 # Конфигурация и флаги по умолчанию
 add_default_configurations("Rendering" "rendering")
