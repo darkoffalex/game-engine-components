@@ -59,7 +59,7 @@ namespace utils::gl
         {
             // Информация для дальнейшего использования (например, при рисовании)
             vertex_count_ = static_cast<GLsizei>(vertices.size());
-            index_count_ = static_cast<GLsizei>(vertices.size());
+            index_count_ = static_cast<GLsizei>(indices.size());
 
             // Убелиться в корректности данных
             assert(vertex_count_ > 0);

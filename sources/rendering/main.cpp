@@ -3,7 +3,8 @@
 #include <GLFW/glfw3.h>
 
 // Примеры
-#include "triangle/triangle.h"
+#include "01-triangle/triangle.h"
+#include "02-uniforms/uniforms.h"
 
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
@@ -63,6 +64,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     try
     {
         triangle::load();
+        uniforms::load();
     }
     catch(std::exception& ex)
     {
@@ -78,6 +80,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Обновление данных
         triangle::update(0.0f);
+        uniforms::update(0.0f);
 
         // Задать цвет очистки буфера
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -85,7 +88,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Рендеринг
-        triangle::render();
+        //triangle::render();
+
+        uniforms::render();
 
         // Смена буферов, опрос оконных событий
         glfwSwapBuffers(window);
@@ -94,6 +99,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     // Выгрузить все OpenGL ресурсы
     triangle::unload();
+    uniforms::unload();
 
     // Завершить работу с GLFW
     glfwTerminate();

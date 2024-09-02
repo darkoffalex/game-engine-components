@@ -3,8 +3,10 @@ add_executable("Rendering"
         main.cpp
         glad.cpp
 
-        triangle/triangle.h
-        triangle/triangle.cpp
+        01-triangle/triangle.h
+        01-triangle/triangle.cpp
+        02-uniforms/uniforms.h
+        02-uniforms/uniforms.cpp
 )
 
 # Конфигурация и флаги по умолчанию
