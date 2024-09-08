@@ -85,7 +85,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Создать основное окно
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Window", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Rendering", nullptr, nullptr);
     if(!window)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -162,7 +162,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         nk_glfw3_new_frame();
         if (nk_begin(
                 ctx,
-                "Rendering",
+                "Settings",
                 nk_rect(0, 0, 200, 250),
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
         {
