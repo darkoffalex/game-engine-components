@@ -15,12 +15,13 @@ namespace uniforms
     };
 
     /**
-     * Описание набора uniform-переменных
+     * Описание набора uniform-переменных.
      * Содержит только одну матрицу трансформации точек
      */
     struct ShaderUniforms
     {
         GLint transform;
+        GLint projection;
     };
 
     /**

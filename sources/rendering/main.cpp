@@ -1,10 +1,14 @@
 #include <iostream>
+#include <chrono>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 // Примеры
 #include "01-triangle/triangle.h"
 #include "02-uniforms/uniforms.h"
+
+// Соотношение сторон экрана
+float g_screen_aspect = 1.0f;
 
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
@@ -53,6 +57,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    // Получить соотношение сторон
+    int width = 0;
+    int height = 0;
+    glfwGetWindowSize(window, &width, &height);
+    g_screen_aspect = (float)width / (float)height;
+
     // Загрузка OpenGL функций (GLAD)
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
@@ -72,15 +82,23 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         return -1;
     }
 
+    // Время предыдущего кадра
+    auto previous_frame = std::chrono::high_resolution_clock::now();
+
     // Покуда окно не должно быть закрыто
     while(!glfwWindowShouldClose(window))
     {
+        // Разница между временем текущего и прошлого кадра
+        auto now = std::chrono::high_resolution_clock::now();
+        float delta = std::chrono::duration<float>(now - previous_frame).count();
+        previous_frame = now;
+
         // Проверка ввода (оконная система)
         check_input(window);
 
         // Обновление данных
-        triangle::update(0.0f);
-        uniforms::update(0.0f);
+        triangle::update(delta);
+        uniforms::update(delta);
 
         // Задать цвет очистки буфера
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -89,7 +107,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Рендеринг
         //triangle::render();
-
         uniforms::render();
 
         // Смена буферов, опрос оконных событий
@@ -117,4 +134,5 @@ void check_input(GLFWwindow* window)
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int width, const int height)
 {
     glViewport(0, 0, width, height);
+    g_screen_aspect = (float)width / (float)height;
 }
