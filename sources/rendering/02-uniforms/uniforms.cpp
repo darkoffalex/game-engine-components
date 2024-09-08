@@ -47,7 +47,7 @@ namespace uniforms
         };
 
         // Создать OpenGL ресурс геометрических буферов из данных
-        g_geometry =  utils::gl::Geometry<Vertex>(vertices, indices, attributes);
+        g_geometry = utils::gl::Geometry<Vertex>(vertices, indices, attributes);
 
         assert(g_shader.initialized());
         assert(g_geometry.initialized());

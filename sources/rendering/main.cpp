@@ -1,14 +1,54 @@
 #include <iostream>
 #include <chrono>
+#include <functional>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_IMPLEMENTATION
+#define NK_GLFW_GL4_IMPLEMENTATION
+#define NK_KEYSTATE_BASED_INPUT
+#define NK_MAX_VERTEX_BUFFER (512 * 1024)
+#define NK_MAX_ELEMENT_BUFFER (128 * 1024)
+
+// Интерфейс nuklear
+#include <nuklear.h>
+#include "gui/nuklear_glfw_gl4.h"
 
 // Примеры
 #include "01-triangle/triangle.h"
 #include "02-uniforms/uniforms.h"
 
-// Соотношение сторон экрана
+// Экран
 float g_screen_aspect = 1.0f;
+int g_screen_width = 0;
+int g_screen_height = 0;
+
+// FPS
+int g_fps = 0;
+std::string g_fps_str;
+float g_fps_until_next_update = 1.0f;
+
+// Наименования примеров (в списке)
+std::vector<const char*> g_example_names = {
+        "triangle",
+        "uniforms"
+};
+
+// Функции рендеринга примеров
+std::vector<std::function<void()>> g_example_render_callbacks = {
+        [](){triangle::render();},
+        [](){uniforms::render();}
+};
+
+// Текущий активный пример
+size_t g_example_selected_index = 0;
 
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
@@ -55,19 +95,32 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     // Сделать окно основным и задать обработчик смены размеров
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Получить соотношение сторон
-    int width = 0;
-    int height = 0;
-    glfwGetWindowSize(window, &width, &height);
-    g_screen_aspect = (float)width / (float)height;
+    //int width = 0;
+    //int height = 0;
+    glfwGetWindowSize(window, &g_screen_width, &g_screen_height);
+    g_screen_aspect = (float)g_screen_width / (float)g_screen_height;
 
     // Загрузка OpenGL функций (GLAD)
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
+    }
+
+    // Nuklear
+    struct nk_context *ctx;
+    ctx = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+    {
+        struct nk_font_atlas *atlas;
+        nk_glfw3_font_stash_begin(&atlas);
+        /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
+        nk_glfw3_font_stash_end();
+        /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
+        /*nk_style_set_font(ctx, &droid->handle);*/
     }
 
     // Загрузить необходимые ресурсы
@@ -88,10 +141,50 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // Покуда окно не должно быть закрыто
     while(!glfwWindowShouldClose(window))
     {
+        // Опрос оконных событий
+        glfwPollEvents();
+
         // Разница между временем текущего и прошлого кадра
         auto now = std::chrono::high_resolution_clock::now();
         float delta = std::chrono::duration<float>(now - previous_frame).count();
         previous_frame = now;
+
+        // Обновить счетчик кадров
+        g_fps_until_next_update -= delta;
+        if(g_fps_until_next_update <= 0)
+        {
+            g_fps = static_cast<int>(1.0f / delta);
+            g_fps_str = std::to_string(g_fps);
+            g_fps_until_next_update = 1.0f;
+        }
+
+        // Подготовка и обработка UI элементов (Nuklear)
+        nk_glfw3_new_frame();
+        if (nk_begin(
+                ctx,
+                "Rendering",
+                nk_rect(0, 0, 200, 250),
+                NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+        {
+            // FPS
+            nk_layout_row_dynamic(ctx, 20, 2);
+            nk_label(ctx, "FPS: ", NK_TEXT_LEFT);
+            nk_label(ctx, g_fps_str.c_str(), NK_TEXT_LEFT);
+
+            // Заголовок - примеры
+            nk_layout_row_dynamic(ctx, 20, 1);
+            nk_label(ctx, "Example:", NK_TEXT_LEFT);
+
+            // Селектор примера
+            nk_layout_row_dynamic(ctx, 25, 1);
+            g_example_selected_index = nk_combo(
+                    ctx, g_example_names.data(),
+                    (int)g_example_names.size(),
+                    (int)g_example_selected_index,
+                    20,
+                    nk_vec2(150,150));
+        }
+        nk_end(ctx);
 
         // Проверка ввода (оконная система)
         check_input(window);
@@ -100,18 +193,20 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         triangle::update(delta);
         uniforms::update(delta);
 
-        // Задать цвет очистки буфера
+        // Сброс всех состояний и очистка экрана
+        glViewport(0, 0, g_screen_width, g_screen_height);
+        glScissor(0, 0, g_screen_width, g_screen_height);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        // Очистка буфера
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Рендеринг
-        //triangle::render();
-        uniforms::render();
+        // Рендеринг выбранного примера
+        g_example_render_callbacks[g_example_selected_index]();
 
-        // Смена буферов, опрос оконных событий
+        // Рендеринг UI элементов (Nuklear)
+        nk_glfw3_render(NK_ANTI_ALIASING_ON);
+
+        // Смена буферов
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
     // Выгрузить все OpenGL ресурсы
@@ -133,6 +228,7 @@ void check_input(GLFWwindow* window)
 
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int width, const int height)
 {
-    glViewport(0, 0, width, height);
+    g_screen_width = width;
+    g_screen_height = height;
     g_screen_aspect = (float)width / (float)height;
 }

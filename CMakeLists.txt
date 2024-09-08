@@ -23,18 +23,19 @@ include_directories(BEFORE include)
 # Найти нужные пакеты
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
+find_package(nuklear REQUIRED)
 
 # Устанавливаем каталоги для бинарников
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/bin )
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/bin )
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/bin )
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+endforeach()
 
 # Статическое связывание для runtime библиотеками (размер итоговых файлов будет больше)
 set(STATIC_RUNTIME OFF)

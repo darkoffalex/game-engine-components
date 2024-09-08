@@ -15,6 +15,7 @@ add_default_configurations("Rendering" "rendering")
 # Связка с нужными библиотеками
 target_link_libraries("Rendering" PRIVATE
         glfw
+        nuklear::nuklear
         opengl::opengl
         glm::glm)
 

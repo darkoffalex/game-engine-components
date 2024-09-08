@@ -1,6 +1,7 @@
 [requires]
 glfw/3.4
 glm/cci.20230113
+nuklear/4.12.0
 [generators]
 CMakeDeps
 CMakeToolchain
