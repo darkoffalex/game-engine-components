@@ -50,6 +50,9 @@ std::vector<std::function<void()>> g_example_render_callbacks = {
 // Текущий активный пример
 size_t g_example_selected_index = 0;
 
+// UI (Nuklear) контекст
+nk_context* g_nk_context = nullptr;
+
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
  * @param window Окно
@@ -93,14 +96,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         return -1;
     }
 
-    // Сделать окно основным и задать обработчик смены размеров
+    // Сделать окно основным, задать обработчик смены размеров, отключить в-синхронизацию
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSwapInterval(0);
 
     // Получить соотношение сторон
-    //int width = 0;
-    //int height = 0;
     glfwGetWindowSize(window, &g_screen_width, &g_screen_height);
     g_screen_aspect = (float)g_screen_width / (float)g_screen_height;
 
@@ -112,10 +113,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     }
 
     // Nuklear
-    struct nk_context *ctx;
-    ctx = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+    g_nk_context = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
     {
-        struct nk_font_atlas *atlas;
+        nk_font_atlas *atlas = nullptr;
         nk_glfw3_font_stash_begin(&atlas);
         /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
         nk_glfw3_font_stash_end();
@@ -161,30 +161,30 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Подготовка и обработка UI элементов (Nuklear)
         nk_glfw3_new_frame();
         if (nk_begin(
-                ctx,
+                g_nk_context,
                 "Settings",
-                nk_rect(0, 0, 200, 250),
+                nk_rect(10, 10, 200, 150),
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
         {
             // FPS
-            nk_layout_row_dynamic(ctx, 20, 2);
-            nk_label(ctx, "FPS: ", NK_TEXT_LEFT);
-            nk_label(ctx, g_fps_str.c_str(), NK_TEXT_LEFT);
+            nk_layout_row_dynamic(g_nk_context, 20, 2);
+            nk_label(g_nk_context, "FPS: ", NK_TEXT_LEFT);
+            nk_label(g_nk_context, g_fps_str.c_str(), NK_TEXT_LEFT);
 
             // Заголовок - примеры
-            nk_layout_row_dynamic(ctx, 20, 1);
-            nk_label(ctx, "Example:", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(g_nk_context, 20, 1);
+            nk_label(g_nk_context, "Example:", NK_TEXT_LEFT);
 
             // Селектор примера
-            nk_layout_row_dynamic(ctx, 25, 1);
+            nk_layout_row_dynamic(g_nk_context, 25, 1);
             g_example_selected_index = nk_combo(
-                    ctx, g_example_names.data(),
+                    g_nk_context, g_example_names.data(),
                     (int)g_example_names.size(),
                     (int)g_example_selected_index,
                     20,
                     nk_vec2(150,150));
         }
-        nk_end(ctx);
+        nk_end(g_nk_context);
 
         // Проверка ввода (оконная система)
         check_input(window);
