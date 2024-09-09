@@ -30,11 +30,6 @@ namespace uniforms
     void load();
 
     /**
-     * Выгрузка ресурсов (когда более не нужны)
-     */
-    void unload();
-
-    /**
      * Обновление данных (например, после ввода)
      * @param delta
      */
@@ -44,4 +39,14 @@ namespace uniforms
      * Рисование
      */
     void render();
+
+    /**
+     * Выгрузка ресурсов (когда более не нужны)
+     */
+    void unload();
+
+    /**
+     * Обновление и обработка UI элементов (Nuklear)
+     */
+    void ui_update();
 }

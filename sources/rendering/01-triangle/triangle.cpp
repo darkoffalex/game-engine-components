@@ -70,4 +70,12 @@ namespace triangle
         g_shader.~Shader();
         g_geometry.~Geometry();
     }
+
+    /**
+     * Обновление и обработка UI элементов (Nuklear)
+     */
+    void ui_update()
+    {
+        // TODO: UI описывается здесь
+    }
 }

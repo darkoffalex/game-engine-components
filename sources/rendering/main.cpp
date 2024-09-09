@@ -47,6 +47,12 @@ std::vector<std::function<void()>> g_example_render_callbacks = {
         [](){uniforms::render();}
 };
 
+// Функции рендеринга примеров
+std::vector<std::function<void()>> g_example_ui_callbacks = {
+        [](){triangle::ui_update();},
+        [](){uniforms::ui_update();}
+};
+
 // Текущий активный пример
 size_t g_example_selected_index = 0;
 
@@ -66,6 +72,17 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, i
  * @param window Окно
  */
 void check_input(GLFWwindow* window);
+
+/**
+ * Инициализация UI (Nuklear)
+ * @param window Окно GLFW
+ */
+void ui_init(GLFWwindow* window);
+
+/**
+ * Обновление UI (Nuklear)
+ */
+void ui_update();
 
 /**
  * Точка входа
@@ -112,18 +129,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         return -1;
     }
 
-    // Nuklear
-    g_nk_context = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
-    {
-        nk_font_atlas *atlas = nullptr;
-        nk_glfw3_font_stash_begin(&atlas);
-        /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
-        nk_glfw3_font_stash_end();
-        /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
-        /*nk_style_set_font(ctx, &droid->handle);*/
-    }
+    // Инициализация UI (Nuklear)
+    ui_init(window);
 
-    // Загрузить необходимые ресурсы
+    // Загрузить необходимые ресурсы сцен-примеров
     try
     {
         triangle::load();
@@ -158,33 +167,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             g_fps_until_next_update = 1.0f;
         }
 
-        // Подготовка и обработка UI элементов (Nuklear)
+        // Подготовка и обработка общих UI элементов (Nuklear)
         nk_glfw3_new_frame();
-        if (nk_begin(
-                g_nk_context,
-                "Settings",
-                nk_rect(10, 10, 200, 150),
-                NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
-        {
-            // FPS
-            nk_layout_row_dynamic(g_nk_context, 20, 2);
-            nk_label(g_nk_context, "FPS: ", NK_TEXT_LEFT);
-            nk_label(g_nk_context, g_fps_str.c_str(), NK_TEXT_LEFT);
+        ui_update();
 
-            // Заголовок - примеры
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_label(g_nk_context, "Example:", NK_TEXT_LEFT);
-
-            // Селектор примера
-            nk_layout_row_dynamic(g_nk_context, 25, 1);
-            g_example_selected_index = nk_combo(
-                    g_nk_context, g_example_names.data(),
-                    (int)g_example_names.size(),
-                    (int)g_example_selected_index,
-                    20,
-                    nk_vec2(150,150));
-        }
-        nk_end(g_nk_context);
+        // Подготовка и обработка UI элементов активного примера (Nuklear)
+        g_example_ui_callbacks[g_example_selected_index]();
 
         // Проверка ввода (оконная система)
         check_input(window);
@@ -231,4 +219,57 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int wi
     g_screen_width = width;
     g_screen_height = height;
     g_screen_aspect = (float)width / (float)height;
+}
+
+/**
+ * Инициализация UI (Nuklear)
+ * @param window Окно GLFW
+ */
+void ui_init(GLFWwindow* window)
+{
+    // Контекст nuklear
+    g_nk_context = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+
+    // Шрифты
+    nk_font_atlas *atlas = nullptr;
+    nk_glfw3_font_stash_begin(&atlas);
+    /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
+    nk_glfw3_font_stash_end();
+
+    // Задать шрифт (раскомментировать при необходимости)
+    /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
+    /*nk_style_set_font(ctx, &droid->handle);*/
+}
+
+/**
+ * Обновление UI (Nuklear)
+ */
+void ui_update()
+{
+    // Диалог настроек
+    if (nk_begin(
+            g_nk_context,
+            "Settings",
+            nk_rect(10, 10, 200, 150),
+            NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+    {
+        // FPS
+        nk_layout_row_dynamic(g_nk_context, 20, 2);
+        nk_label(g_nk_context, "FPS: ", NK_TEXT_LEFT);
+        nk_label(g_nk_context, g_fps_str.c_str(), NK_TEXT_LEFT);
+
+        // Заголовок - примеры
+        nk_layout_row_dynamic(g_nk_context, 20, 1);
+        nk_label(g_nk_context, "Scene:", NK_TEXT_LEFT);
+
+        // Селектор примера
+        nk_layout_row_dynamic(g_nk_context, 25, 1);
+        g_example_selected_index = nk_combo(
+                g_nk_context, g_example_names.data(),
+                (int)g_example_names.size(),
+                (int)g_example_selected_index,
+                20,
+                nk_vec2(150,150));
+    }
+    nk_end(g_nk_context);
 }
