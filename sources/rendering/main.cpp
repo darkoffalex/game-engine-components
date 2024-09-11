@@ -12,14 +12,14 @@
 #define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
-#define NK_GLFW_GL4_IMPLEMENTATION
+#define NK_GLFW_GL3_IMPLEMENTATION
 #define NK_KEYSTATE_BASED_INPUT
 #define NK_MAX_VERTEX_BUFFER (512 * 1024)
 #define NK_MAX_ELEMENT_BUFFER (128 * 1024)
 
 // Интерфейс nuklear
 #include <nuklear.h>
-#include "gui/nuklear_glfw_gl4.h"
+#include "gui/nuklear_glfw_gl3.h"
 
 // Примеры
 #include "01-triangle/triangle.h"
@@ -58,6 +58,7 @@ size_t g_example_selected_index = 0;
 
 // UI (Nuklear) контекст
 nk_context* g_nk_context = nullptr;
+nk_glfw g_glfw = {};
 
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
@@ -165,10 +166,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             g_fps = static_cast<int>(1.0f / delta);
             g_fps_str = std::to_string(g_fps);
             g_fps_until_next_update = 1.0f;
+
+            std::string title = "Rendering: (FPS " + g_fps_str + ")";
+            glfwSetWindowTitle(window, title.c_str());
         }
 
         // Подготовка и обработка общих UI элементов (Nuklear)
-        nk_glfw3_new_frame();
+        nk_glfw3_new_frame(&g_glfw);
         ui_update();
 
         // Подготовка и обработка UI элементов активного примера (Nuklear)
@@ -191,7 +195,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         g_example_render_callbacks[g_example_selected_index]();
 
         // Рендеринг UI элементов (Nuklear)
-        nk_glfw3_render(NK_ANTI_ALIASING_ON);
+        nk_glfw3_render(&g_glfw, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
 
         // Смена буферов
         glfwSwapBuffers(window);
@@ -228,13 +232,13 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int wi
 void ui_init(GLFWwindow* window)
 {
     // Контекст nuklear
-    g_nk_context = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+    g_nk_context = nk_glfw3_init(&g_glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
 
     // Шрифты
     nk_font_atlas *atlas = nullptr;
-    nk_glfw3_font_stash_begin(&atlas);
+    nk_glfw3_font_stash_begin(&g_glfw, &atlas);
     /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
-    nk_glfw3_font_stash_end();
+    nk_glfw3_font_stash_end(&g_glfw);
 
     // Задать шрифт (раскомментировать при необходимости)
     /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
