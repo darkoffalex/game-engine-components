@@ -14,8 +14,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Пути для обнаружения модулей
-set(CMAKE_PREFIX_PATH build/Debug/generators build/generators)
-set(CMAKE_MODULE_PATH build/Debug/generators build/generators)
+set(CMAKE_PREFIX_PATH build/Debug/generators build/generators build/Release/generators)
+set(CMAKE_MODULE_PATH build/Debug/generators build/generators build/Release/generators)
 
 # Локальные дополнительные заголовки
 include_directories(BEFORE include)
@@ -24,6 +24,7 @@ include_directories(BEFORE include)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(nuklear REQUIRED)
+find_package(stb REQUIRED)
 
 # Устанавливаем каталоги для бинарников
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

@@ -7,6 +7,8 @@ add_executable("Rendering"
         01-triangle/triangle.cpp
         02-uniforms/uniforms.h
         02-uniforms/uniforms.cpp
+        03-textures/textures.h
+        03-textures/textures.cpp
 )
 
 # Конфигурация и флаги по умолчанию
@@ -17,7 +19,8 @@ target_link_libraries("Rendering" PRIVATE
         glfw
         nuklear::nuklear
         opengl::opengl
-        glm::glm)
+        glm::glm
+        stb::stb)
 
 # Копирование библиотек
 foreach (DIR ${glfw_BIN_DIRS_DEBUG} ${glfw_BIN_DIRS_RELEASE})

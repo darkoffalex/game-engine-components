@@ -24,6 +24,7 @@
 // Примеры
 #include "01-triangle/triangle.h"
 #include "02-uniforms/uniforms.h"
+#include "03-textures/textures.h"
 
 // Экран
 float g_screen_aspect = 1.0f;
@@ -38,19 +39,22 @@ float g_fps_until_next_update = 1.0f;
 // Наименования примеров (в списке)
 std::vector<const char*> g_example_names = {
         "triangle",
-        "uniforms"
+        "uniforms",
+        "textures"
 };
 
 // Функции рендеринга примеров
 std::vector<std::function<void()>> g_example_render_callbacks = {
         [](){triangle::render();},
-        [](){uniforms::render();}
+        [](){uniforms::render();},
+        [](){textures::render();}
 };
 
 // Функции рендеринга примеров
 std::vector<std::function<void()>> g_example_ui_callbacks = {
         [](){triangle::ui_update();},
-        [](){uniforms::ui_update();}
+        [](){uniforms::ui_update();},
+        [](){textures::ui_update();}
 };
 
 // Текущий активный пример
@@ -138,6 +142,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     {
         triangle::load();
         uniforms::load();
+        textures::load();
     }
     catch(std::exception& ex)
     {
@@ -184,6 +189,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Обновление данных
         triangle::update(delta);
         uniforms::update(delta);
+        textures::update(delta);
 
         // Сброс всех состояний и очистка экрана
         glViewport(0, 0, g_screen_width, g_screen_height);
@@ -204,6 +210,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // Выгрузить все OpenGL ресурсы
     triangle::unload();
     uniforms::unload();
+    textures::unload();
 
     // Завершить работу с GLFW
     glfwTerminate();
