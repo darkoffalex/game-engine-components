@@ -15,8 +15,8 @@ namespace scenes
     {
         // Загрузить исходные коды шейдеров
         const std::unordered_map<GLuint, std::string> shader_sources = {
-                {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/triangle/shaders/base.vert")},
-                {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/triangle/shaders/base.frag")}
+                {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/shaders/triangle/base.vert")},
+                {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/shaders/triangle/base.frag")}
         };
 
         // Создать OpenGL ресурс шейдера из исходников
@@ -32,8 +32,8 @@ namespace scenes
 
         // Описание атрибутов шейдера
         const std::vector<utils::gl::VertexAttributeInfo> attributes = {
-                {0,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, position)},
-                {1,3,GL_FLOAT, GL_FALSE, offsetof(Vertex, color)}
+                {0,3,GL_FLOAT, GL_FALSE, (GLsizeiptr)offsetof(Vertex, position)},
+                {1,3,GL_FLOAT, GL_FALSE, (GLsizeiptr)offsetof(Vertex, color)}
         };
 
         // Создать OpenGL ресурс геометрических буферов из данных

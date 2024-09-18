@@ -34,8 +34,8 @@ namespace scenes
         {
             // Загрузить исходные коды шейдеров
             const std::unordered_map<GLuint, std::string> shader_sources = {
-                    {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/textures/shaders/base.vert")},
-                    {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/textures/shaders/base.frag")}
+                    {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/shaders/textures/base.vert")},
+                    {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/shaders/textures/base.frag")}
             };
 
             // Создать OpenGL ресурс шейдера из исходников
@@ -71,11 +71,11 @@ namespace scenes
             stbi_set_flip_vertically_on_load(true);
 
             // Загрузить данные из файлов, создать OpenGL ресурсы, удалить данные
-            bytes = stbi_load("../content/textures/images/box_1.png", &width, &height, &channels, STBI_rgb_alpha);
+            bytes = stbi_load("../content/textures/box_1.png", &width, &height, &channels, STBI_rgb_alpha);
             textures_[0] = utils::gl::Texture2D(bytes, width, height, GL_LINEAR_MIPMAP_LINEAR, utils::gl::Texture2D::EColorSpace::RGB_ALPHA, true);
             stbi_image_free(bytes);
 
-            bytes = stbi_load("../content/textures/images/box_2.png", &width, &height, &channels, STBI_rgb_alpha);
+            bytes = stbi_load("../content/textures/box_2.png", &width, &height, &channels, STBI_rgb_alpha);
             textures_[1] = utils::gl::Texture2D(bytes, width, height, GL_LINEAR_MIPMAP_LINEAR, utils::gl::Texture2D::EColorSpace::RGB_ALPHA, true);
             stbi_image_free(bytes);
         }

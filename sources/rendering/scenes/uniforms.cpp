@@ -29,8 +29,8 @@ namespace scenes
     {
         // Загрузить исходные коды шейдеров
         const std::unordered_map<GLuint, std::string> shader_sources = {
-                {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/uniforms/shaders/base.vert")},
-                {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/uniforms/shaders/base.frag")}
+                {GL_VERTEX_SHADER,  utils::files::load_as_text("../content/shaders/uniforms/base.vert")},
+                {GL_FRAGMENT_SHADER, utils::files::load_as_text("../content/shaders/uniforms/base.frag")}
         };
 
         // Создать OpenGL ресурс шейдера из исходников

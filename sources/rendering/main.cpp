@@ -65,12 +65,12 @@ void check_input(GLFWwindow* window);
  * Инициализация UI (Nuklear)
  * @param window Окно GLFW
  */
-void ui_init(GLFWwindow* window);
+void init_ui(GLFWwindow* window);
 
 /**
  * Обновление UI (Nuklear)
  */
-void ui_update();
+void update_ui();
 
 /**
  * Точка входа
@@ -118,7 +118,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     }
 
     // Инициализация UI (Nuklear)
-    ui_init(window);
+    init_ui(window);
 
     // Список сцен
     g_scenes.push_back(new scenes::Triangle());
@@ -151,6 +151,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Опрос оконных событий
         glfwPollEvents();
 
+        // Проверка ввода (оконная система)
+        check_input(window);
+
         // Разница между временем текущего и прошлого кадра
         auto now = std::chrono::high_resolution_clock::now();
         float delta = std::chrono::duration<float>(now - previous_frame).count();
@@ -170,13 +173,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Подготовка и обработка общих UI элементов (Nuklear)
         nk_glfw3_new_frame(&g_glfw);
-        ui_update();
+        update_ui();
 
         // Подготовка и обработка UI элементов активного примера (Nuklear)
         g_scenes[g_scene_index]->update_ui(delta);
-
-        // Проверка ввода (оконная система)
-        check_input(window);
 
         // Обновление данных выбранной сцены
         g_scenes[g_scene_index]->update(delta);
@@ -231,7 +231,7 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int wi
  * Инициализация UI (Nuklear)
  * @param window Окно GLFW
  */
-void ui_init(GLFWwindow* window)
+void init_ui(GLFWwindow* window)
 {
     // Контекст nuklear
     g_nk_context = nk_glfw3_init(&g_glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
@@ -250,7 +250,7 @@ void ui_init(GLFWwindow* window)
 /**
  * Обновление UI (Nuklear)
  */
-void ui_update()
+void update_ui()
 {
     // Диалог настроек
     if (nk_begin(
