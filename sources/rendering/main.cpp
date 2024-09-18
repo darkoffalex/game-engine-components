@@ -22,9 +22,9 @@
 #include "gui/nuklear_glfw_gl3.h"
 
 // Примеры
-#include "01-triangle/triangle.h"
-#include "02-uniforms/uniforms.h"
-#include "03-textures/textures.h"
+#include "scenes/triangle.h"
+#include "scenes/uniforms.h"
+#include "scenes/textures.h"
 
 // Экран
 float g_screen_aspect = 1.0f;
@@ -36,29 +36,12 @@ int g_fps = 0;
 std::string g_fps_str;
 float g_fps_until_next_update = 1.0f;
 
-// Наименования примеров (в списке)
-std::vector<const char*> g_example_names = {
-        "triangle",
-        "uniforms",
-        "textures"
-};
-
-// Функции рендеринга примеров
-std::vector<std::function<void()>> g_example_render_callbacks = {
-        [](){triangle::render();},
-        [](){uniforms::render();},
-        [](){textures::render();}
-};
-
-// Функции рендеринга примеров
-std::vector<std::function<void()>> g_example_ui_callbacks = {
-        [](){triangle::ui_update();},
-        [](){uniforms::ui_update();},
-        [](){textures::ui_update();}
-};
-
-// Текущий активный пример
-size_t g_example_selected_index = 0;
+// Список сцен
+std::vector<scenes::Base*> g_scenes = {};
+// Список имен сцен
+std::vector<const char*> g_scene_names = {};
+// Индекс текущей активной сцены
+size_t g_scene_index = 0;
 
 // UI (Nuklear) контекст
 nk_context* g_nk_context = nullptr;
@@ -137,12 +120,21 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // Инициализация UI (Nuklear)
     ui_init(window);
 
+    // Список сцен
+    g_scenes.push_back(new scenes::Triangle());
+    g_scenes.push_back(new scenes::Uniforms());
+    g_scenes.push_back(new scenes::Textures());
+
+    // Названия сцен
+    for(auto* s : g_scenes) g_scene_names.push_back(s->name());
+
     // Загрузить необходимые ресурсы сцен-примеров
     try
     {
-        triangle::load();
-        uniforms::load();
-        textures::load();
+        for(auto* s : g_scenes)
+        {
+            s->load();
+        }
     }
     catch(std::exception& ex)
     {
@@ -181,36 +173,39 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         ui_update();
 
         // Подготовка и обработка UI элементов активного примера (Nuklear)
-        g_example_ui_callbacks[g_example_selected_index]();
+        g_scenes[g_scene_index]->update_ui(delta);
 
         // Проверка ввода (оконная система)
         check_input(window);
 
-        // Обновление данных
-        triangle::update(delta);
-        uniforms::update(delta);
-        textures::update(delta);
+        // Обновление данных выбранной сцены
+        g_scenes[g_scene_index]->update(delta);
 
-        // Сброс всех состояний и очистка экрана
-        glViewport(0, 0, g_screen_width, g_screen_height);
-        glScissor(0, 0, g_screen_width, g_screen_height);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // Р Е Н Д Е Р И Н Г
+        {
+            // Сброс всех состояний и очистка экрана
+            glViewport(0, 0, g_screen_width, g_screen_height);
+            glScissor(0, 0, g_screen_width, g_screen_height);
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-        // Рендеринг выбранного примера
-        g_example_render_callbacks[g_example_selected_index]();
+            // Рендеринг выбранного примера
+            g_scenes[g_scene_index]->render();
 
-        // Рендеринг UI элементов (Nuklear)
-        nk_glfw3_render(&g_glfw, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+            // Рендеринг UI элементов (Nuklear)
+            nk_glfw3_render(&g_glfw, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+        }
 
         // Смена буферов
         glfwSwapBuffers(window);
     }
 
-    // Выгрузить все OpenGL ресурсы
-    triangle::unload();
-    uniforms::unload();
-    textures::unload();
+    // Выгрузить все OpenGL ресурсы сцен
+    for(auto* s : g_scenes)
+    {
+        s->unload();
+        delete s;
+    }
 
     // Завершить работу с GLFW
     glfwTerminate();
@@ -275,10 +270,10 @@ void ui_update()
 
         // Селектор примера
         nk_layout_row_dynamic(g_nk_context, 25, 1);
-        g_example_selected_index = nk_combo(
-                g_nk_context, g_example_names.data(),
-                (int)g_example_names.size(),
-                (int)g_example_selected_index,
+        g_scene_index = nk_combo(
+                g_nk_context, g_scene_names.data(),
+                (int)g_scene_names.size(),
+                (int)g_scene_index,
                 20,
                 nk_vec2(150,150));
     }

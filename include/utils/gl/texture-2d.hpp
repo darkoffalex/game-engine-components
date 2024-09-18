@@ -3,12 +3,14 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "shader.hpp"
+
 namespace utils::gl
 {
     /**
      * Обертка над текстурой OpenGL
      */
-    class Texture2D final
+    class Texture2D final : public Resource
     {
     public:
         /**
@@ -29,7 +31,7 @@ namespace utils::gl
          * Не создает ресурсов OpenGL, создает пустой объект
          */
         Texture2D()
-                : initialized_(false)
+                : Resource()
                 , id_(0)
                 , width_(0)
                 , height_(0)
@@ -53,7 +55,7 @@ namespace utils::gl
                   EColorSpace color_space,
                   bool mip,
                   GLuint data_type = GL_UNSIGNED_BYTE)
-                : initialized_(false)
+                : Resource()
                 , id_(0)
                 , width_(width)
                 , height_(height)
@@ -61,7 +63,6 @@ namespace utils::gl
         {
             // Данные должны быть предоставлены
             assert(data != nullptr);
-            if(!data) return;
 
             // Генерация идентификатора текстуры
             glGenTextures(1, &id_);
@@ -108,7 +109,7 @@ namespace utils::gl
             glBindTexture(GL_TEXTURE_2D, 0);
 
             // Готово к использованию
-            initialized_ = true;
+            loaded_ = true;
         }
 
         /**
@@ -122,13 +123,12 @@ namespace utils::gl
          * @param other Другой объект
          */
         Texture2D(Texture2D&& other) noexcept
-                : initialized_(other.initialized_)
+                : Resource(std::move(other))
                 , id_(other.id_)
                 , width_(other.width_)
                 , height_(other.height_)
                 , mip_(other.mip_)
         {
-            other.initialized_ = false;
             other.id_ = 0;
             other.width_ = 0;
             other.height_ = 0;
@@ -138,9 +138,9 @@ namespace utils::gl
         /**
          * Уничтожает OpenGL ресурсы
          */
-        ~Texture2D()
+        ~Texture2D() override
         {
-            if (id_) glDeleteTextures(1, &id_);
+            unload();
         }
 
         /**
@@ -160,13 +160,13 @@ namespace utils::gl
             if (&other == this) return *this;
 
             if (id_) glDeleteTextures(1, &id_);
-            initialized_ = false;
+            loaded_ = false;
             id_ = 0;
             width_ = 0;
             height_ = 0;
             mip_ = false;
 
-            std::swap(initialized_, other.initialized_);
+            std::swap(loaded_, other.loaded_);
             std::swap(id_, other.id_);
             std::swap(width_, other.width_);
             std::swap(height_, other.height_);
@@ -203,19 +203,23 @@ namespace utils::gl
         }
 
         /**
-         * Получить готовность к использованию
-         * @return Статус инициализации
+         * Выгрузка ресурса
          */
-        [[nodiscard]] bool initialized() const
+        void unload() override
         {
-            return initialized_;
+            if (id_) glDeleteTextures(1, &id_);
+
+            id_ = 0;
+            width_ = 0;
+            height_ = 0;
+            mip_ = false;
+            loaded_ = false;
         }
 
     private:
-        bool initialized_;  // Готовность к использованию
-        GLuint id_;         // OpenGL дескриптор текстуры
-        GLsizei width_;      // Ширина текстуры
-        GLsizei height_;     // Высота текстуры
-        bool mip_;          // Генерация мип-уровней
+        GLuint id_;             // OpenGL дескриптор текстуры
+        GLsizei width_;         // Ширина текстуры
+        GLsizei height_;        // Высота текстуры
+        bool mip_;              // Генерация мип-уровней
     };
 }

@@ -3,12 +3,13 @@ add_executable("Rendering"
         main.cpp
         glad.cpp
 
-        01-triangle/triangle.h
-        01-triangle/triangle.cpp
-        02-uniforms/uniforms.h
-        02-uniforms/uniforms.cpp
-        03-textures/textures.h
-        03-textures/textures.cpp
+        scenes/base.h
+        scenes/triangle.h
+        scenes/triangle.cpp
+        scenes/uniforms.h
+        scenes/uniforms.cpp
+        scenes/textures.h
+        scenes/textures.cpp
 )
 
 # Конфигурация и флаги по умолчанию

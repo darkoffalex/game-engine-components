@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include "resource.hpp"
+
 namespace utils::gl
 {
 
@@ -27,7 +29,7 @@ namespace utils::gl
      * @tparam V Структура вершины
      */
     template <class V>
-    class Geometry final
+    class Geometry final : public Resource
     {
     public:
         /**
@@ -35,7 +37,7 @@ namespace utils::gl
          * Не создает ресурсов OpenGL, создает пустой объект
          */
         Geometry()
-            : initialized_(false)
+            : Resource()
             , vbo_id_(0)
             , ebo_id_(0)
             , vao_id_(0)
@@ -50,7 +52,7 @@ namespace utils::gl
          * @param attributes Список описаний атрибутов вершины для шейдера
          */
         Geometry(const std::vector<V>& vertices, const std::vector<GLuint>& indices, const std::vector<VertexAttributeInfo>& attributes)
-            : initialized_(false)
+            : Resource()
             , vbo_id_(0)
             , ebo_id_(0)
             , vao_id_(0)
@@ -88,7 +90,7 @@ namespace utils::gl
             glBindVertexArray(0);
 
             // Готово к использованию
-            initialized_ = true;
+            loaded_ = true;
         }
 
         /**
@@ -102,14 +104,14 @@ namespace utils::gl
          * @param other Другой объект
          */
         Geometry(Geometry&& other) noexcept
-            : initialized_(other.initialized_)
+            : Resource(std::move(other))
             , vbo_id_(other.vbo_id_)
             , ebo_id_(other.ebo_id_)
             , vao_id_(other.vao_id_)
             , vertex_count_(other.vertex_count_)
             , index_count_(other.index_count_)
         {
-            other.initialized_ = false;
+
             other.vao_id_ = 0;
             other.ebo_id_ = 0;
             other.vao_id_ = 0;
@@ -120,17 +122,9 @@ namespace utils::gl
         /**
          * Уничтожает OpenGL ресурсы
          */
-        ~Geometry()
+        ~Geometry() override
         {
-            if (vbo_id_) glDeleteBuffers(1, &vbo_id_);
-            if (ebo_id_) glDeleteBuffers(1, &ebo_id_);
-            if (vao_id_) glDeleteVertexArrays(1, &vao_id_);
-            initialized_ = false;
-            vbo_id_ = 0;
-            ebo_id_ = 0;
-            vao_id_ = 0;
-            vertex_count_ = 0;
-            index_count_ = 0;
+            unload();
         }
 
         /**
@@ -152,14 +146,14 @@ namespace utils::gl
             if (vbo_id_) glDeleteBuffers(1, &vbo_id_);
             if (ebo_id_) glDeleteBuffers(1, &ebo_id_);
             if (vao_id_) glDeleteVertexArrays(1, &vao_id_);
-            initialized_ = false;
+            loaded_ = false;
             vbo_id_ = 0;
             ebo_id_ = 0;
             vao_id_ = 0;
             vertex_count_ = 0;
             index_count_ = 0;
 
-            std::swap(initialized_, other.initialized_);
+            std::swap(loaded_, other.loaded_);
             std::swap(vbo_id_, other.vbo_id_);
             std::swap(ebo_id_, other.ebo_id_);
             std::swap(vao_id_, other.vao_id_);
@@ -215,12 +209,21 @@ namespace utils::gl
         }
 
         /**
-         * Получить готовность к использованию
-         * @return Статус инициализации
+         * Выгрузка ресурса
          */
-        [[nodiscard]] bool initialized() const
+        void unload() override
         {
-            return initialized_;
+            if (vbo_id_) glDeleteBuffers(1, &vbo_id_);
+            if (ebo_id_) glDeleteBuffers(1, &ebo_id_);
+            if (vao_id_) glDeleteVertexArrays(1, &vao_id_);
+
+            vbo_id_ = 0;
+            ebo_id_ = 0;
+            vao_id_ = 0;
+            vertex_count_ = 0;
+            index_count_ = 0;
+
+            loaded_ = false;
         }
 
     protected:
@@ -250,7 +253,6 @@ namespace utils::gl
         }
 
     private:
-        bool initialized_;          // Готовность к использованию
         GLuint vbo_id_;             // OpenGL дескриптор вершинного буфера
         GLuint ebo_id_;             // OpenGL дескриптор индексного буфера
         GLuint vao_id_;             // OpenGL дескриптор VAO объекта

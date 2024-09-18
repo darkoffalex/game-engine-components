@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <cassert>
 
+#include "resource.hpp"
+
 namespace utils::gl
 {
     /**
@@ -17,14 +19,17 @@ namespace utils::gl
      * @tparam T Тип полей вышеупомянутой структуры
      */
     template <class L, typename T>
-    class Shader final
+    class Shader final : public Resource
     {
     public:
         /**
          * Конструктор по умолчанию
          * Не создает ресурс OpenGL, создает пустой объект
          */
-        Shader(): initialized_(false), id_(0), locations_({})
+        Shader()
+            : Resource()
+            , id_(0)
+            , locations_({})
         {}
 
         /**
@@ -33,7 +38,7 @@ namespace utils::gl
          * @param uniforms Наименования uniform переменных в шейдере (с учетом порядка и кол-ва в структуре L)
          */
         Shader(const std::unordered_map<GLuint, std::string>& sources, const std::vector<std::string>& uniforms)
-            : initialized_(false)
+            : Resource()
             , id_(0)
             , locations_({})
         {
@@ -77,7 +82,7 @@ namespace utils::gl
             if(!uniforms.empty()) init_uniform_locations(uniforms);
 
             // Готово к использованию
-            initialized_ = true;
+            loaded_ = true;
         }
 
         /**
@@ -91,11 +96,10 @@ namespace utils::gl
          * @param other Другой объект
          */
         Shader(Shader&& other) noexcept
-            : initialized_(other.initialized_)
+            : Resource(std::move(other))
             , id_(other.id_)
             , locations_(other.locations_)
         {
-            other.initialized_ = false;
             other.id_ = 0;
             other.locations_ = {};
         }
@@ -103,13 +107,9 @@ namespace utils::gl
         /**
          * Уничтожает OpenGL ресурс
          */
-        ~Shader()
+        ~Shader() override
         {
-            if (id_) glDeleteProgram(id_);
-
-            initialized_ = false;
-            id_ = 0;
-            locations_ = {};
+            unload();
         }
 
         /**
@@ -130,11 +130,11 @@ namespace utils::gl
 
             if (id_) glDeleteProgram(id_);
 
-            initialized_ = false;
+            loaded_ = false;
             id_ = 0;
             locations_ = {};
 
-            std::swap(this->initialized_, other.initialized_);
+            std::swap(this->loaded_, other.loaded_);
             std::swap(this->id_, other.id_);
             std::swap(this->locations_, other.locations_);
 
@@ -160,12 +160,15 @@ namespace utils::gl
         }
 
         /**
-         * Получить готовность к использованию
-         * @return Статус инициализации
+         * Выгрузка ресурса
          */
-        [[nodiscard]] bool initialized() const
+        void unload() override
         {
-            return initialized_;
+            if (id_) glDeleteProgram(id_);
+
+            loaded_ = false;
+            id_ = 0;
+            locations_ = {};
         }
 
     protected:
@@ -231,7 +234,6 @@ namespace utils::gl
         }
 
     private:
-        bool initialized_;  // Готовность к использованию
         GLuint id_;         // OpenGL дескриптор шейдерной программы
         L locations_;       // Структура идентификаторов uniform-переменных
     };
