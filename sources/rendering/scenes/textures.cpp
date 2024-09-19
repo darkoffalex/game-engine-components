@@ -17,9 +17,11 @@ namespace scenes
     Textures::Textures()
         : projection_(glm::mat4(1.0f))
         , transforms_{glm::mat4(1.0f),glm::mat4(1.0f)}
-        , positions_{glm::vec3(-0.75f, 0.0f, 0.0f),glm::vec3(0.75f, 0.0f, 0.0f)}
-        , scales_{glm::vec3(0.5f),glm::vec3(0.5f)}
-        , angles_{0.0f, 0.0f}
+        , uv_transform_{glm::mat3(1.0f),glm::mat3(1.0f)}
+        , uv_offsets_{glm::vec2(0.0f, 0.0f),glm::vec2(0.0f, 0.0f)}
+        , uv_scales_{glm::vec2(1.0f),glm::vec3(1.0f)}
+        , uv_angles_{0.0f, 0.0f}
+        , uv_wrap_{GL_REPEAT, GL_REPEAT}
     {}
 
     Textures::~Textures() = default;
@@ -39,7 +41,12 @@ namespace scenes
             };
 
             // Создать OpenGL ресурс шейдера из исходников
-            shader_ = utils::gl::Shader<ShaderUniforms, GLint>(shader_sources,{"transform", "projection", "texture_sampler"});
+            shader_ = utils::gl::Shader<ShaderUniforms, GLint>(shader_sources,{
+                "transform",
+                "projection",
+                "texture_mapping",
+                "texture_sampler"
+            });
         }
 
         // Геометрия
@@ -109,15 +116,36 @@ namespace scenes
 
         // Трансформация для первой отрисовки
         transforms_[0] =
-                glm::translate(glm::mat4(1.0f),positions_[0]) *
-                glm::rotate(glm::mat4(1.0f), glm::radians(angles_[0]),glm::vec3(0.0f,0.0f,1.0f)) *
-                glm::scale(glm::mat4(1.0f),scales_[0]);
+                glm::translate(glm::mat4(1.0f),glm::vec3(-1.0f, 0.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(0.0f),glm::vec3(0.0f,0.0f,1.0f)) *
+                glm::scale(glm::mat4(1.0f),glm::vec3(1.0f));
 
         // Трансформация для второй отрисовки
         transforms_[1] =
-                glm::translate(glm::mat4(1.0f),positions_[1]) *
-                glm::rotate(glm::mat4(1.0f), glm::radians(angles_[1]),glm::vec3(0.0f,0.0f,1.0f)) *
-                glm::scale(glm::mat4(1.0f),scales_[1]);
+                glm::translate(glm::mat4(1.0f),glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(0.0f),glm::vec3(0.0f,0.0f,1.0f)) *
+                glm::scale(glm::mat4(1.0f),glm::vec3(1.0f));
+
+        // Трансформация UV координат для первой отрисовки
+        for(unsigned i = 0; i < 2; i++)
+        {
+            glm::mat3 uv_translate = glm::mat3(
+                    glm::vec3(1.0f, 0.0f, 0.0f),
+                    glm::vec3(0.0f, 1.0f, 0.0f),
+                    glm::vec3(uv_offsets_[i].x, uv_offsets_[i].y,1.0f));
+
+            glm::mat3 uv_rotate = glm::mat3(
+                    glm::vec3(glm::cos(glm::radians(uv_angles_[i])), glm::sin(glm::radians(uv_angles_[i])), 0.0f),
+                    glm::vec3(-glm::sin(glm::radians(uv_angles_[i])), glm::cos(glm::radians(uv_angles_[i])), 0.0f),
+                    glm::vec3(0.0f, 0.0f, 1.0f));
+
+            glm::mat3 uv_scale = glm::mat3(
+                    glm::vec3(uv_scales_[i].x, 0.0f, 0.0f),
+                    glm::vec3(0.0f, uv_scales_[i].y, 0.0f),
+                    glm::vec3(0.0f, 0.0f, 1.0f));
+
+            uv_transform_[i] =  uv_rotate * uv_translate * uv_scale;
+        }
     }
 
     /**
@@ -125,7 +153,36 @@ namespace scenes
      * @param delta Временная дельта кадра
      */
     void Textures::update_ui([[maybe_unused]] float delta)
-    {}
+    {
+        for(unsigned i = 0; i < 2; ++i)
+        {
+            // Добавить диалог настроек
+            if (nk_begin(
+                    g_nk_context,
+                    i == 0 ? "Object 1" : "Object 2",
+                    nk_rect(10.0f, 170.0f + (float)(i * 210), 200.0f, 200.0f),
+                    NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+            {
+                // Положение
+                nk_layout_row_dynamic(g_nk_context, 20, 1);
+                nk_property_float(g_nk_context, "Offset X", -10.0f, &uv_offsets_[0].x, 10.0f, 0.01f, 0.01f);
+                nk_layout_row_dynamic(g_nk_context, 20, 1);
+                nk_property_float(g_nk_context, "Offset Y", -10.0f, &uv_offsets_[0].y, 10.0f, 0.01f, 0.01f);
+                // Масштаб
+                nk_layout_row_dynamic(g_nk_context, 20, 1);
+                nk_property_float(g_nk_context, "Scale X", -10.0f, &uv_scales_[0].x, 10.0f, 0.05f, 0.05f);
+                nk_layout_row_dynamic(g_nk_context, 20, 1);
+                nk_property_float(g_nk_context, "Scale y", -10.0f, &uv_scales_[0].y, 10.0f, 0.05f, 0.05f);
+                // Поворот
+                nk_layout_row_dynamic(g_nk_context, 20, 1);
+                nk_property_float(g_nk_context, "Angle", -360.0f, &uv_angles_[0], 360.0f, 0.15f, 0.15f);
+
+                // Выход за границы UV
+                nk_layout_row_dynamic(g_nk_context, 20, 1);
+            }
+            nk_end(g_nk_context);
+        }
+    }
 
     /**
      * Рисование сцены
@@ -137,29 +194,27 @@ namespace scenes
         glUseProgram(shader_.id());
         // Привязать геометрию
         glBindVertexArray(geometry_.vao_id());
-
-        // Привязка текстур к текстурным "слотам"
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures_[0].id());
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, textures_[1].id());
-
-        // Нарисовать геометрию используя проекцию, трансформацию 1 и текстуру 1
+        // Задать матрицу проекцию (для всех draw call'ов)
         glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
-        glUniformMatrix4fv(shader_.uniform_locations().transform, 1, GL_FALSE, glm::value_ptr(transforms_[0]));
-        glUniform1i(shader_.uniform_locations().texture, 0);
-        glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
 
-        // Нарисовать геометрию используя проекцию, трансформацию 2 и текстуру 2
-        glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
-        glUniformMatrix4fv(shader_.uniform_locations().transform, 1, GL_FALSE, glm::value_ptr(transforms_[1]));
-        glUniform1i(shader_.uniform_locations().texture, 1);
-        glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
+        for(unsigned i = 0; i < 2; ++i)
+        {
+            // Привязка текстур к текстурным "слотам" + установка правил wrap'инга
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, textures_[i].id());
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uv_wrap_[i]);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uv_wrap_[i]);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
+            // Нарисовать геометрию используя трансформацию положений вершин и UV координат
+            glUniformMatrix4fv(shader_.uniform_locations().transform, 1, GL_FALSE, glm::value_ptr(transforms_[i]));
+            glUniformMatrix3fv(shader_.uniform_locations().texture_mapping, 1, GL_FALSE, glm::value_ptr(uv_transform_[i]));
+            glUniform1i(shader_.uniform_locations().texture, (GLint)i);
+            glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
+
+            // Сброс
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
     }
 
     /**

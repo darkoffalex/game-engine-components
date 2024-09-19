@@ -168,12 +168,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         g_fps_until_next_update -= delta;
         if(g_fps_until_next_update <= 0)
         {
-            g_fps = static_cast<int>(1.0f / delta);
             g_fps_str = std::to_string(g_fps);
+            g_fps = 0;
             g_fps_until_next_update = 1.0f;
 
             std::string title = "Rendering: (FPS " + g_fps_str + ")";
             glfwSetWindowTitle(window, title.c_str());
+        }
+        else
+        {
+            g_fps++;
         }
 
         // Обновление UI (если нужно)

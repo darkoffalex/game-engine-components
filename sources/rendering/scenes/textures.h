@@ -32,6 +32,7 @@ namespace scenes
         {
             GLint transform;
             GLint projection;
+            GLint texture_mapping;
             GLint texture;
         };
 
@@ -83,10 +84,12 @@ namespace scenes
         // Матрицы для передачи шейдеру
         glm::mat4 projection_;
         glm::mat4 transforms_[2];
+        glm::mat3 uv_transform_[2];
 
         // Положения, масштабы и прочие данные для построения/обновления матриц
-        glm::vec3 positions_[2];
-        glm::vec3 scales_[2];
-        float angles_[2];
+        glm::vec2 uv_offsets_[2];
+        glm::vec2 uv_scales_[2];
+        float uv_angles_[2];
+        GLint uv_wrap_[2];
     };
 }
