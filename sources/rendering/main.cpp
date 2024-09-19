@@ -47,6 +47,9 @@ size_t g_scene_index = 0;
 nk_context* g_nk_context = nullptr;
 nk_glfw g_glfw = {};
 
+// Использовать UI
+bool g_use_ui = true;
+
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
  * @param window Окно
@@ -56,10 +59,14 @@ nk_glfw g_glfw = {};
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height);
 
 /**
- * Обработка пользовательского ввода
+ * Обработка событий ввода
  * @param window Окно
+ * @param key Кнопка
+ * @param scancode Код символа
+ * @param action Тип действия (GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT)
+ * @param mods Биты модификации (GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, GLFW_MOD_ALT...)
  */
-void check_input(GLFWwindow* window);
+void input_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 /**
  * Инициализация UI (Nuklear)
@@ -104,6 +111,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // Сделать окно основным, задать обработчик смены размеров, отключить в-синхронизацию
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, input_callback);
     glfwSwapInterval(0);
 
     // Получить соотношение сторон
@@ -151,9 +159,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Опрос оконных событий
         glfwPollEvents();
 
-        // Проверка ввода (оконная система)
-        check_input(window);
-
         // Разница между временем текущего и прошлого кадра
         auto now = std::chrono::high_resolution_clock::now();
         float delta = std::chrono::duration<float>(now - previous_frame).count();
@@ -171,12 +176,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             glfwSetWindowTitle(window, title.c_str());
         }
 
-        // Подготовка и обработка общих UI элементов (Nuklear)
-        nk_glfw3_new_frame(&g_glfw);
-        update_ui();
+        // Обновление UI (если нужно)
+        if(g_use_ui)
+        {
+            // Подготовка и обработка общих UI элементов (Nuklear)
+            nk_glfw3_new_frame(&g_glfw);
+            update_ui();
 
-        // Подготовка и обработка UI элементов активного примера (Nuklear)
-        g_scenes[g_scene_index]->update_ui(delta);
+            // Подготовка и обработка UI элементов активного примера (Nuklear)
+            g_scenes[g_scene_index]->update_ui(delta);
+        }
 
         // Обновление данных выбранной сцены
         g_scenes[g_scene_index]->update(delta);
@@ -193,7 +202,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             g_scenes[g_scene_index]->render();
 
             // Рендеринг UI элементов (Nuklear)
-            nk_glfw3_render(&g_glfw, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+            if(g_use_ui)
+            {
+                nk_glfw3_render(&g_glfw, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+            }
         }
 
         // Смена буферов
@@ -212,14 +224,54 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     return 0;
 }
 
-void check_input(GLFWwindow* window)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Обработка событий ввода
+ * @param window Окно
+ * @param key Кнопка
+ * @param scancode Код символа
+ * @param action Тип действия (GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT)
+ * @param mods Биты модификации (GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, GLFW_MOD_ALT...)
+ */
+void input_callback([[maybe_unused]] GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if(action == GLFW_PRESS)
     {
-        glfwSetWindowShouldClose(window, true);
+        switch (key)
+        {
+            case GLFW_KEY_U:
+            {
+                g_use_ui = !g_use_ui;
+                break;
+            }
+            case GLFW_KEY_RIGHT:
+            {
+                g_scene_index = glm::clamp<size_t>(g_scene_index + 1, 0, g_scenes.size() - 1);
+                break;
+            }
+            case GLFW_KEY_LEFT:
+            {
+                g_scene_index = glm::clamp<size_t>(g_scene_index - 1, 0, g_scenes.size() - 1);
+                break;
+            }
+            case GLFW_KEY_ESCAPE:
+            {
+                glfwSetWindowShouldClose(window, true);
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 
+/**
+ * Вызывается GLFW при смене размеров целевого фрейм-буфера
+ * @param window Окно
+ * @param width Ширина
+ * @param height Высота
+ */
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int width, const int height)
 {
     g_screen_width = width;
