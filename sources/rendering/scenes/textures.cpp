@@ -116,13 +116,13 @@ namespace scenes
 
         // Трансформация для первой отрисовки
         transforms_[0] =
-                glm::translate(glm::mat4(1.0f),glm::vec3(-1.0f, 0.0f, 0.0f)) *
+                glm::translate(glm::mat4(1.0f),glm::vec3(-1.25f, 0.0f, 0.0f)) *
                 glm::rotate(glm::mat4(1.0f), glm::radians(0.0f),glm::vec3(0.0f,0.0f,1.0f)) *
                 glm::scale(glm::mat4(1.0f),glm::vec3(1.0f));
 
         // Трансформация для второй отрисовки
         transforms_[1] =
-                glm::translate(glm::mat4(1.0f),glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::translate(glm::mat4(1.0f),glm::vec3(1.25f, 0.0f, 0.0f)) *
                 glm::rotate(glm::mat4(1.0f), glm::radians(0.0f),glm::vec3(0.0f,0.0f,1.0f)) *
                 glm::scale(glm::mat4(1.0f),glm::vec3(1.0f));
 
@@ -165,17 +165,17 @@ namespace scenes
             {
                 // Положение
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Offset X", -10.0f, &uv_offsets_[0].x, 10.0f, 0.01f, 0.01f);
+                nk_property_float(g_nk_context, "Offset X", -10.0f, &uv_offsets_[i].x, 10.0f, 0.01f, 0.01f);
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Offset Y", -10.0f, &uv_offsets_[0].y, 10.0f, 0.01f, 0.01f);
+                nk_property_float(g_nk_context, "Offset Y", -10.0f, &uv_offsets_[i].y, 10.0f, 0.01f, 0.01f);
                 // Масштаб
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Scale X", -10.0f, &uv_scales_[0].x, 10.0f, 0.05f, 0.05f);
+                nk_property_float(g_nk_context, "Scale X", -10.0f, &uv_scales_[i].x, 10.0f, 0.05f, 0.05f);
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Scale y", -10.0f, &uv_scales_[0].y, 10.0f, 0.05f, 0.05f);
+                nk_property_float(g_nk_context, "Scale y", -10.0f, &uv_scales_[i].y, 10.0f, 0.05f, 0.05f);
                 // Поворот
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Angle", -360.0f, &uv_angles_[0], 360.0f, 0.15f, 0.15f);
+                nk_property_float(g_nk_context, "Angle", -360.0f, &uv_angles_[i], 360.0f, 0.15f, 0.15f);
 
                 // Выход за границы UV
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
