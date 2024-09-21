@@ -25,6 +25,7 @@
 #include "scenes/triangle.h"
 #include "scenes/uniforms.h"
 #include "scenes/textures.h"
+#include "scenes/perspective.h"
 
 // Экран
 float g_screen_aspect = 1.0f;
@@ -132,6 +133,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     g_scenes.push_back(new scenes::Triangle());
     g_scenes.push_back(new scenes::Uniforms());
     g_scenes.push_back(new scenes::Textures());
+    g_scenes.push_back(new scenes::Perspective());
 
     // Названия сцен
     for(auto* s : g_scenes) g_scene_names.push_back(s->name());

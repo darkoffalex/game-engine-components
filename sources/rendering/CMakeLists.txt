@@ -10,6 +10,8 @@ add_executable("Rendering"
         scenes/uniforms.cpp
         scenes/textures.h
         scenes/textures.cpp
+        scenes/perspective.h
+        scenes/perspective.cpp
 )
 
 # Конфигурация и флаги по умолчанию

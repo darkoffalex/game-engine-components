@@ -64,7 +64,7 @@ namespace scenes
     void Uniforms::unload()
     {
         shader_.unload();
-        shader_.unload();
+        geometry_.unload();
     }
 
     /**
