@@ -162,13 +162,13 @@ namespace scenes
         glBindVertexArray(geometry_.vao_id());
 
         // Нарисовать геометрию используя проекцию и трансформацию 1
-        glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
-        glUniformMatrix4fv(shader_.uniform_locations().transform, 1, GL_FALSE, glm::value_ptr(transforms_[0]));
+        glUniformMatrix4fv(shader_.uniforms().projection, 1, GL_FALSE, glm::value_ptr(projection_));
+        glUniformMatrix4fv(shader_.uniforms().transform, 1, GL_FALSE, glm::value_ptr(transforms_[0]));
         glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
 
         // Нарисовать геометрию используя проекцию и трансформацию 2
-        glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
-        glUniformMatrix4fv(shader_.uniform_locations().transform, 1, GL_FALSE, glm::value_ptr(transforms_[1]));
+        glUniformMatrix4fv(shader_.uniforms().projection, 1, GL_FALSE, glm::value_ptr(projection_));
+        glUniformMatrix4fv(shader_.uniforms().transform, 1, GL_FALSE, glm::value_ptr(transforms_[1]));
         glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
     }
 

@@ -231,6 +231,7 @@ namespace scenes
         glFrontFace(GL_CW);
         // Отбрасывать задние грани
         glEnable(GL_CULL_FACE);
+        // Включить тест глубины
         glEnable(GL_DEPTH_TEST);
 
         // Использовать шейдер
@@ -239,8 +240,8 @@ namespace scenes
         glBindVertexArray(geometry_.vao_id());
 
         // Задать матрицу проекции и вида (для всех draw call'ов)
-        glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
-        glUniformMatrix4fv(shader_.uniform_locations().view, 1, GL_FALSE, glm::value_ptr(view_));
+        glUniformMatrix4fv(shader_.uniforms().projection, 1, GL_FALSE, glm::value_ptr(projection_));
+        glUniformMatrix4fv(shader_.uniforms().view, 1, GL_FALSE, glm::value_ptr(view_));
 
         // Привязка текстур к текстурным "слотам"
         glActiveTexture(GL_TEXTURE0);
@@ -249,8 +250,8 @@ namespace scenes
         for(auto &m : model_)
         {
             // Нарисовать геометрию используя матрицу модели и текстуру
-            glUniformMatrix4fv(shader_.uniform_locations().model, 1, GL_FALSE, glm::value_ptr(m));
-            glUniform1i(shader_.uniform_locations().texture, 0);
+            glUniformMatrix4fv(shader_.uniforms().model, 1, GL_FALSE, glm::value_ptr(m));
+            glUniform1i(shader_.uniforms().texture, 0);
             glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
         }
 

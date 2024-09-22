@@ -264,7 +264,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
  * @param action Тип действия (GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT)
  * @param mods Биты модификации (GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, GLFW_MOD_ALT...)
  */
-void keyboard_callback([[maybe_unused]] GLFWwindow *window, int key, int scancode, int action, int mods)
+void keyboard_callback([[maybe_unused]] GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods)
 {
     // Кнопка нажата один раз
     if(action == GLFW_PRESS)

@@ -154,7 +154,7 @@ namespace utils::gl
          * Получить структуру с идентификаторами uniform-переменных
          * @return Идентификаторы локаций
          */
-        [[nodiscard]] const L& uniform_locations() const
+        [[nodiscard]] const L& uniforms() const
         {
             return locations_;
         }

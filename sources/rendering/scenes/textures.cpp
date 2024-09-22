@@ -195,7 +195,7 @@ namespace scenes
         // Привязать геометрию
         glBindVertexArray(geometry_.vao_id());
         // Задать матрицу проекцию (для всех draw call'ов)
-        glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
+        glUniformMatrix4fv(shader_.uniforms().projection, 1, GL_FALSE, glm::value_ptr(projection_));
 
         for(unsigned i = 0; i < 2; ++i)
         {
@@ -206,9 +206,9 @@ namespace scenes
             //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uv_wrap_[i]);
 
             // Нарисовать геометрию используя трансформацию положений вершин и UV координат
-            glUniformMatrix4fv(shader_.uniform_locations().transform, 1, GL_FALSE, glm::value_ptr(transforms_[i]));
-            glUniformMatrix3fv(shader_.uniform_locations().texture_mapping, 1, GL_FALSE, glm::value_ptr(uv_transform_[i]));
-            glUniform1i(shader_.uniform_locations().texture, (GLint)i);
+            glUniformMatrix4fv(shader_.uniforms().transform, 1, GL_FALSE, glm::value_ptr(transforms_[i]));
+            glUniformMatrix3fv(shader_.uniforms().texture_mapping, 1, GL_FALSE, glm::value_ptr(uv_transform_[i]));
+            glUniform1i(shader_.uniforms().texture, (GLint)i);
             glDrawElements(GL_TRIANGLES, geometry_.index_count(), GL_UNSIGNED_INT, nullptr);
 
             // Сброс
