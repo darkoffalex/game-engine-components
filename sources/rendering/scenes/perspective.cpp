@@ -1,4 +1,6 @@
+#define GLM_FORCE_SWIZZLE
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 #include <utils/files/load.hpp>
 #include <nuklear.h>
 #include <stb_image.h>
@@ -9,6 +11,17 @@
 extern float g_screen_aspect;
 // UI (Nuklear) контекст
 extern nk_context* g_nk_context;
+// Включен ли UI (свободная камера доступна вы отключенном UI)
+extern bool g_use_ui;
+// Управление
+extern bool g_key_forward;
+extern bool g_key_backward;
+extern bool g_key_left;
+extern bool g_key_right;
+extern bool g_key_downward;
+extern bool g_key_upward;
+extern float g_mouse_delta_x;
+extern float g_mouse_delta_y;
 
 namespace scenes
 {
@@ -18,11 +31,16 @@ namespace scenes
             , model_{glm::mat4(1.0f),glm::mat4(1.0f)}
             , camera_pos_(glm::vec3(0.0f, 0.0f, 2.5f))
             , object_pos_{glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)}
-            , object_scale_{glm::vec3(1.0f),glm::vec3(1.0f)}
+            , object_scale_{glm::vec3(1.0f),glm::vec3(1.0f, 1.0f, 1.0f)}
             , object_rotation_{glm::vec3(0.0f),glm::vec3(0.0f)}
             , z_far_(100.0f)
             , z_near_(0.1f)
             , fov_(45.0f)
+            , cam_yaw_(0.0f)
+            , cam_pitch_(0.0f)
+            , cam_sensitivity_(0.1f)
+            , cam_speed_(1.0f)
+            , cam_movement_(0.0f)
     {}
 
     Perspective::~Perspective() = default;
@@ -57,7 +75,9 @@ namespace scenes
                     0,1,2, 2,3,0,
                     4,5,6, 6,7,4,
                     8,9,10, 10,11,8,
-                    12,13,14, 14,15,12
+                    12,13,14, 14,15,12,
+                    16,17,18, 18,19,16,
+                    20,21,22, 22,23,20
             };
             const std::vector<Vertex> vertices = {
                     {{-0.5f, -0.5f, 0.5f},{0.0f, 0.0f}},
@@ -79,6 +99,16 @@ namespace scenes
                     {{-0.5f, 0.5f, -0.5f},{0.0f, 1.0f}},
                     {{-0.5f, 0.5f, 0.5f},{1.0f, 1.0f}},
                     {{-0.5f, -0.5f, 0.5f},{1.0f, 0.0f}},
+
+                    {{-0.5f, 0.5f, 0.5f},{0.0f, 0.0f}},
+                    {{-0.5f, 0.5f, -0.5f},{0.0f, 1.0f}},
+                    {{0.5f, 0.5f, -0.5f},{1.0f, 1.0f}},
+                    {{0.5f, 0.5f, 0.5f},{1.0f, 0.0f}},
+
+                    {{-0.5f, -0.5f, -0.5f},{0.0f, 0.0f}},
+                    {{-0.5f, -0.5f, 0.5f},{0.0f, 1.0f}},
+                    {{0.5f, -0.5f, 0.5f},{1.0f, 1.0f}},
+                    {{0.5f, -0.5f, -0.5f},{1.0f, 0.0f}},
             };
 
             // Описание атрибутов шейдера
@@ -125,16 +155,51 @@ namespace scenes
      */
     void Perspective::update([[maybe_unused]] float delta)
     {
+        // Вращение объектов
         object_rotation_[0].y += delta * 45.0f;
         object_rotation_[1].y -= delta * 45.0f;
 
-        // Ортогональная проекция (с учетом соотношения экрана)
+        // Управление свободной камерой
+        if(!g_use_ui)
+        {
+            cam_pitch_ -= (g_mouse_delta_y * cam_sensitivity_);
+            cam_yaw_ -= (g_mouse_delta_x * cam_sensitivity_);
+
+            cam_movement_ = {};
+            if(g_key_forward) cam_movement_.z = -1.0f;
+            else if(g_key_backward) cam_movement_.z = 1.0f;
+            if (g_key_left) cam_movement_.x = -1.0f;
+            else if(g_key_right) cam_movement_.x = 1.0f;
+            if (g_key_upward) cam_movement_.y = 1.0f;
+            else if(g_key_downward) cam_movement_.y = -1.0f;
+        }
+
+        // Перспективная проекция (с учетом соотношения экрана)
         // Окончательное преобразование точек в NCD пространство
         projection_ = glm::perspective(fov_, g_screen_aspect, z_near_, z_far_);
 
-        // Матрица вида
-        // Преобразование точек в пространство вида (центр - положение камеры)
-        view_ = glm::inverse(glm::translate(glm::mat4(1.0f), camera_pos_));
+        // Камера
+        {
+            // Поворот камеры
+            glm::mat4 cam_rotation =
+                    glm::rotate(glm::mat4(1.0f), glm::radians(cam_yaw_),glm::vec3(0.0f,1.0f,0.0f)) *
+                    glm::rotate(glm::mat4(1.0f), glm::radians(cam_pitch_),glm::vec3(1.0f,0.0f,0.0f));
+
+            // Учесть поворот камеры при движении.
+            // Игнорируем ось Y при получении "повернутого" вектора движения.
+            // Добавляем ость Y отдельно (в независимость от поворота она всегда должна быть направлена вертикально)
+            glm::vec2 h = glm::vec2(cam_movement_.x, cam_movement_.z);
+            glm::vec3 d = glm::length2(h) > 0.0f ? glm::normalize(glm::vec3(h.x, 0.0f, h.y)) : glm::vec3(0.0f);
+            glm::vec4 d_rot = cam_rotation * glm::vec4(d, 0.0f);
+            camera_pos_ += (glm::vec3(d_rot.x, d_rot.y + cam_movement_.y, d_rot.z) * cam_speed_ * delta);
+
+            // Смещение камеры
+            glm::mat4 cam_translate = glm::translate(glm::mat4(1.0f), camera_pos_);
+
+            // Инверсия (матрица вида будет конвертировать глобальные координаты в пространство камеры)
+            view_ = glm::inverse(cam_translate * cam_rotation);
+        }
+
 
         // Матрицы моделей для двух объектов
         for(unsigned i = 0; i < 2; i++)
@@ -154,8 +219,7 @@ namespace scenes
      * @param delta Временная дельта кадра
      */
     void Perspective::update_ui([[maybe_unused]] float delta)
-    {
-    }
+    {}
 
     /**
      * Рисование сцены
@@ -167,17 +231,18 @@ namespace scenes
         glFrontFace(GL_CW);
         // Отбрасывать задние грани
         glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
 
         // Использовать шейдер
         glUseProgram(shader_.id());
         // Привязать геометрию
         glBindVertexArray(geometry_.vao_id());
 
-        // Задать матрицу проекцию и вида (для всех draw call'ов)
+        // Задать матрицу проекции и вида (для всех draw call'ов)
         glUniformMatrix4fv(shader_.uniform_locations().projection, 1, GL_FALSE, glm::value_ptr(projection_));
         glUniformMatrix4fv(shader_.uniform_locations().view, 1, GL_FALSE, glm::value_ptr(view_));
 
-        // Привязка текстур к текстурным "слотам" + установка правил wrap'инга
+        // Привязка текстур к текстурным "слотам"
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture_.id());
 

@@ -95,5 +95,9 @@ namespace scenes
 
         // Параметры для построения матрицы проекции
         GLfloat z_far_, z_near_, fov_;
+
+        // Доп параметры для управления камерой
+        GLfloat cam_yaw_, cam_pitch_, cam_sensitivity_, cam_speed_;
+        glm::vec3 cam_movement_;
     };
 }

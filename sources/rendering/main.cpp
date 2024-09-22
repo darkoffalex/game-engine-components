@@ -51,6 +51,16 @@ nk_glfw g_glfw = {};
 // Использовать UI
 bool g_use_ui = true;
 
+// Управление
+bool g_key_forward = false;
+bool g_key_backward = false;
+bool g_key_left = false;
+bool g_key_right = false;
+bool g_key_downward = false;
+bool g_key_upward = false;
+float g_mouse_delta_x = 0.0f;
+float g_mouse_delta_y = 0.0f;
+
 /**
  * Вызывается GLFW при смене размеров целевого фрейм-буфера
  * @param window Окно
@@ -60,14 +70,22 @@ bool g_use_ui = true;
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height);
 
 /**
- * Обработка событий ввода
+ * Обработка событий ввода с клавиатуры
  * @param window Окно
  * @param key Кнопка
  * @param scancode Код символа
  * @param action Тип действия (GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT)
  * @param mods Биты модификации (GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, GLFW_MOD_ALT...)
  */
-void input_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+/**
+ * Обработка событий перемещения курсора
+ * @param window Окно
+ * @param x_pos Положение по горизонтали
+ * @param y_pos Положение по вертикали
+ */
+void mouse_pos_callback(GLFWwindow* window, double x_pos, double y_pos);
 
 /**
  * Инициализация UI (Nuklear)
@@ -112,7 +130,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // Сделать окно основным, задать обработчик смены размеров, отключить в-синхронизацию
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetKeyCallback(window, input_callback);
+    glfwSetKeyCallback(window, keyboard_callback);
+    glfwSetCursorPosCallback(window, mouse_pos_callback);
+    //glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     glfwSwapInterval(0);
 
     // Получить соотношение сторон
@@ -196,13 +216,17 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Обновление данных выбранной сцены
         g_scenes[g_scene_index]->update(delta);
 
+        // Сброс смещения курсора мыши
+        g_mouse_delta_x = 0.0f;
+        g_mouse_delta_y = 0.0f;
+
         // Р Е Н Д Е Р И Н Г
         {
             // Сброс всех состояний и очистка экрана
             glViewport(0, 0, g_screen_width, g_screen_height);
             glScissor(0, 0, g_screen_width, g_screen_height);
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             // Рендеринг выбранного примера
             g_scenes[g_scene_index]->render();
@@ -233,15 +257,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Обработка событий ввода
+ * Обработка событий ввода с клавиатуры
  * @param window Окно
  * @param key Кнопка
  * @param scancode Код символа
  * @param action Тип действия (GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT)
  * @param mods Биты модификации (GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, GLFW_MOD_ALT...)
  */
-void input_callback([[maybe_unused]] GLFWwindow *window, int key, int scancode, int action, int mods)
+void keyboard_callback([[maybe_unused]] GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    // Кнопка нажата один раз
     if(action == GLFW_PRESS)
     {
         switch (key)
@@ -249,6 +274,7 @@ void input_callback([[maybe_unused]] GLFWwindow *window, int key, int scancode, 
             case GLFW_KEY_U:
             {
                 g_use_ui = !g_use_ui;
+                glfwSetInputMode(window, GLFW_CURSOR, g_use_ui ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
                 break;
             }
             case GLFW_KEY_RIGHT:
@@ -266,10 +292,94 @@ void input_callback([[maybe_unused]] GLFWwindow *window, int key, int scancode, 
                 glfwSetWindowShouldClose(window, true);
                 break;
             }
+            case GLFW_KEY_W:
+            {
+                g_key_forward = true;
+                break;
+            }
+            case GLFW_KEY_S:
+            {
+                g_key_backward = true;
+                break;
+            }
+            case GLFW_KEY_D:
+            {
+                g_key_right = true;
+                break;
+            }
+            case GLFW_KEY_A:
+            {
+                g_key_left = true;
+                break;
+            }
+            case GLFW_KEY_C:
+            {
+                g_key_downward = true;
+                break;
+            }
+            case GLFW_KEY_SPACE:
+            {
+                g_key_upward = true;
+                break;
+            }
             default:
                 break;
         }
     }
+    else if(action == GLFW_RELEASE)
+    {
+        switch (key)
+        {
+            case GLFW_KEY_W:
+            {
+                g_key_forward = false;
+                break;
+            }
+            case GLFW_KEY_S:
+            {
+                g_key_backward = false;
+                break;
+            }
+            case GLFW_KEY_D:
+            {
+                g_key_right = false;
+                break;
+            }
+            case GLFW_KEY_A:
+            {
+                g_key_left = false;
+                break;
+            }
+            case GLFW_KEY_C:
+            {
+                g_key_downward = false;
+                break;
+            }
+            case GLFW_KEY_SPACE:
+            {
+                g_key_upward = false;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+/**
+ * Обработка событий перемещения курсора
+ * @param window Окно
+ * @param x_pos Положение по горизонтали
+ * @param y_pos Положение по вертикали
+ */
+void mouse_pos_callback([[maybe_unused]] GLFWwindow *window, double x_pos, double y_pos)
+{
+    static double prev_x = x_pos;
+    static double prev_y = y_pos;
+    g_mouse_delta_x = static_cast<float>(x_pos - prev_x);
+    g_mouse_delta_y = static_cast<float>(y_pos - prev_y);
+    prev_x = x_pos;
+    prev_y = y_pos;
 }
 
 /**
