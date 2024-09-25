@@ -12,6 +12,8 @@ add_executable("Rendering"
         scenes/textures.cpp
         scenes/perspective.h
         scenes/perspective.cpp
+        scenes/passes.h
+        scenes/passes.cpp
 )
 
 # Конфигурация и флаги по умолчанию

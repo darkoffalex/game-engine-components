@@ -143,15 +143,7 @@ namespace utils::gl
         {
             if (&other == this) return *this;
 
-            if (vbo_id_) glDeleteBuffers(1, &vbo_id_);
-            if (ebo_id_) glDeleteBuffers(1, &ebo_id_);
-            if (vao_id_) glDeleteVertexArrays(1, &vao_id_);
-            loaded_ = false;
-            vbo_id_ = 0;
-            ebo_id_ = 0;
-            vao_id_ = 0;
-            vertex_count_ = 0;
-            index_count_ = 0;
+            unload();
 
             std::swap(loaded_, other.loaded_);
             std::swap(vbo_id_, other.vbo_id_);

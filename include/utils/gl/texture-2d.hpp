@@ -188,7 +188,7 @@ namespace utils::gl
          * Получить ширину текстуры
          * @return Ширина
          */
-        [[nodiscard]] GLuint width() const
+        [[nodiscard]] GLsizei width() const
         {
             return width_;
         }
@@ -197,7 +197,7 @@ namespace utils::gl
          * Получить ширину текстуры
          * @return Ширина
          */
-        [[nodiscard]] GLuint height() const
+        [[nodiscard]] GLsizei height() const
         {
             return height_;
         }
