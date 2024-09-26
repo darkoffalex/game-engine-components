@@ -19,6 +19,9 @@ namespace scenes
             , scale_index_(0)
             , scales_{1.0f, 0.75f, 0.5f, 0.25f, 0.1f}
             , scale_names_{"100%","75%","50%","25%","10%"}
+            , render_(false)
+            , filter_((int)false)
+            , resolution_("0x0")
     {}
 
     Passes::~Passes() = default;
@@ -97,6 +100,10 @@ namespace scenes
                 {color},
                 {depth_stencil});
 
+        // Обновить строчку с разрешением
+        resolution_ = std::to_string(frame_buffer_primary_.width()) +
+                "x" + std::to_string(frame_buffer_primary_.height());
+
         assert(shader_primary_.ready());
         assert(geometry_primary_.ready());
         assert(shader_secondary_.ready());
@@ -145,22 +152,28 @@ namespace scenes
         // Диалог настроек
         if (nk_begin(
                 g_nk_context,
-                "Resolution",
-                nk_rect(10, 170, 200, 120),
+                "Frame buffer options",
+                nk_rect(10, 170, 200, 180),
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
         {
-            // Заголовок - масштаб
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_label(g_nk_context, "Scale:", NK_TEXT_LEFT);
-
             // Селектор масштаба
-            nk_layout_row_dynamic(g_nk_context, 25, 1);
+            nk_layout_row_dynamic(g_nk_context, 20, 2);
+            nk_label(g_nk_context, "Scale:", NK_TEXT_LEFT);
             scale_index_ = nk_combo(
                     g_nk_context, scale_names_.data(),
                     (int)scale_names_.size(),
                     (int)scale_index_,
                     20,
                     nk_vec2(150,150));
+
+            // Текущее разрешение
+            nk_layout_row_dynamic(g_nk_context, 20, 2);
+            nk_label(g_nk_context, "Resolution:", NK_TEXT_LEFT);
+            nk_label(g_nk_context, resolution_.c_str(), NK_TEXT_RIGHT);
+
+            // Фильтрация
+            nk_layout_row_dynamic(g_nk_context, 20, 1);
+            nk_checkbox_label_align(g_nk_context, "Filtering:", &filter_, NK_WIDGET_ALIGN_RIGHT, NK_TEXT_LEFT);
         }
         nk_end(g_nk_context);
     }
@@ -201,6 +214,12 @@ namespace scenes
         // Привязать цветовое вложение кадрового буфера как текстуру к первому слоту
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, frame_buffer_primary_.attachments_tx()[0]);
+
+        // Фильтрация
+        // Только для примера! Устанавливать параметры текстур в каждом кадре дорого и не есть хорошая практика
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter_ ? GL_LINEAR : GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter_ ? GL_LINEAR : GL_NEAREST);
+
         // Использовать шейдер
         glUseProgram(shader_secondary_.id());
         // Привязать геометрию
@@ -246,5 +265,9 @@ namespace scenes
 
         // Включить рендеринг
         render_ = frame_buffer_primary_.ready();
+
+        // Обновить строчку с разрешением
+        resolution_ = std::to_string(frame_buffer_primary_.width()) +
+                "x" + std::to_string(frame_buffer_primary_.height());
     }
 }
