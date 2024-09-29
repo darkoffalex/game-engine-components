@@ -176,9 +176,6 @@ namespace scenes
                 // Поворот
                 nk_layout_row_dynamic(g_nk_context, 20, 1);
                 nk_property_float(g_nk_context, "Angle", -360.0f, &uv_angles_[i], 360.0f, 0.15f, 0.15f);
-
-                // Выход за границы UV
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
             }
             nk_end(g_nk_context);
         }

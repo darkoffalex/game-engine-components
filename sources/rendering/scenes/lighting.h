@@ -9,10 +9,10 @@
 namespace scenes
 {
     /**
-     * Пример перспективной проекции
-     * Отображение вращающихся кубов
+     * Пример простого освещение
+     * Сцена из нескольких кубов и источников света
      */
-    class Perspective : public Base
+    class Lighting : public Base
     {
     public:
         /**
@@ -23,6 +23,7 @@ namespace scenes
         {
             glm::vec3 position;
             glm::vec2 uv;
+            glm::vec3 normal;
         };
 
         /**
@@ -34,12 +35,32 @@ namespace scenes
             GLint model;
             GLint view;
             GLint projection;
-            GLint texture;
+
+            GLint light_positions;
+            GLint light_colors;
+            GLint light_directions;
+            GLint light_types;
+            GLint light_fall_offs;
+            GLint light_hot_spots;
+            GLint light_count;
+        };
+
+        /**
+         * Типы источников освещения
+         * Должны соответствовать заданным в шейдере
+         */
+        enum class ELightType : GLuint
+        {
+            AMBIENT = 0,
+            POINT,
+            SPOT,
+            DIRECTIONAL,
+            TOTAL
         };
 
     public:
-        Perspective();
-        ~Perspective() override;
+        Lighting();
+        ~Lighting() override;
 
         /**
          * Загрузка шейдеров, геометрии
@@ -80,7 +101,6 @@ namespace scenes
         // Ресурсы
         utils::gl::Shader<ShaderUniforms, GLint> shader_;
         utils::gl::Geometry<Vertex> geometry_;
-        utils::gl::Texture2D texture_;
 
         // Матрицы для преобразования вершин
         glm::mat4 projection_;
@@ -99,5 +119,16 @@ namespace scenes
         // Доп параметры для управления камерой
         GLfloat cam_yaw_, cam_pitch_, cam_sensitivity_, cam_speed_;
         glm::vec3 cam_movement_;
+
+        // Источники света
+        std::vector<glm::vec3> light_positions_;
+        std::vector<glm::vec3> light_colors_;
+        std::vector<glm::vec3> light_directions_;
+        std::vector<GLuint>    light_types_;
+        std::vector<GLfloat>   light_fall_offs_;
+        std::vector<GLfloat>   light_hot_spots_;
+
+    private:
+        const static std::vector<const char*> light_type_names_;
     };
 }
