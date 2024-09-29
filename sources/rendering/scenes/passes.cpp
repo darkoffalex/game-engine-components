@@ -152,7 +152,7 @@ namespace scenes
             {
                 for(size_t i = 0; i < scale_names_.size(); i++)
                 {
-                    bool is_selected = scale_index_ == i;
+                    bool is_selected = scale_index_ == (int)i;
                     if(ImGui::Selectable(scale_names_[i], is_selected)) scale_index_ = (int)i;
                     if(is_selected) ImGui::SetItemDefaultFocus();
                 }
