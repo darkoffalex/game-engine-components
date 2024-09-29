@@ -3,6 +3,9 @@ add_executable("Rendering"
         main.cpp
         glad.cpp
 
+        gui/imgui_impl_glfw.cpp
+        gui/imgui_impl_opengl3.cpp
+
         scenes/base.h
         scenes/triangle.h
         scenes/triangle.cpp
@@ -24,7 +27,7 @@ add_default_configurations("Rendering" "rendering")
 # Связка с нужными библиотеками
 target_link_libraries("Rendering" PRIVATE
         glfw
-        nuklear::nuklear
+        imgui::imgui
         opengl::opengl
         glm::glm
         stb::stb)

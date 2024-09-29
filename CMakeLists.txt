@@ -23,7 +23,8 @@ include_directories(BEFORE include)
 # Найти нужные пакеты
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
-find_package(nuklear REQUIRED)
+#find_package(nuklear REQUIRED)
+find_package(imgui REQUIRED)
 find_package(stb REQUIRED)
 
 # Устанавливаем каталоги для бинарников

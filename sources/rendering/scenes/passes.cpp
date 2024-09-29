@@ -1,14 +1,11 @@
-#include <glm/glm.hpp>
 #include <utils/files/load.hpp>
-#include <nuklear.h>
+#include <imgui.h>
 
 #include "passes.h"
 
 // Размеры итогового буфера (окна)
 extern int g_screen_width;
 extern int g_screen_height;
-// UI (Nuklear) контекст
-extern nk_context* g_nk_context;
 
 namespace scenes
 {
@@ -20,7 +17,7 @@ namespace scenes
             , scales_{1.0f, 0.75f, 0.5f, 0.25f, 0.1f}
             , scale_names_{"100%","75%","50%","25%","10%"}
             , render_(false)
-            , filter_((int)false)
+            , filter_(false)
             , resolution_("0x0")
     {}
 
@@ -149,33 +146,24 @@ namespace scenes
      */
     void Passes::update_ui([[maybe_unused]] float delta)
     {
-        // Диалог настроек
-        if (nk_begin(
-                g_nk_context,
-                "Frame buffer options",
-                nk_rect(10, 170, 200, 180),
-                NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+        if(ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            // Селектор масштаба
-            nk_layout_row_dynamic(g_nk_context, 20, 2);
-            nk_label(g_nk_context, "Scale:", NK_TEXT_LEFT);
-            scale_index_ = nk_combo(
-                    g_nk_context, scale_names_.data(),
-                    (int)scale_names_.size(),
-                    (int)scale_index_,
-                    20,
-                    nk_vec2(150,150));
+            if(ImGui::BeginCombo("Scale:", scale_names_[scale_index_]))
+            {
+                for(size_t i = 0; i < scale_names_.size(); i++)
+                {
+                    bool is_selected = scale_index_ == i;
+                    if(ImGui::Selectable(scale_names_[i], is_selected)) scale_index_ = (int)i;
+                    if(is_selected) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
 
-            // Текущее разрешение
-            nk_layout_row_dynamic(g_nk_context, 20, 2);
-            nk_label(g_nk_context, "Resolution:", NK_TEXT_LEFT);
-            nk_label(g_nk_context, resolution_.c_str(), NK_TEXT_RIGHT);
+            ImGui::Text("Resolution: %s", resolution_.c_str());
+            ImGui::Checkbox("Filtering", &filter_);
 
-            // Фильтрация
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_checkbox_label_align(g_nk_context, "Filtering:", &filter_, NK_WIDGET_ALIGN_RIGHT, NK_TEXT_LEFT);
+            ImGui::End();
         }
-        nk_end(g_nk_context);
     }
 
     /**

@@ -115,7 +115,7 @@ namespace scenes
         bool render_;
 
         // Использовать фильтрацию текстуры кадрового буфера
-        int filter_;
+        bool filter_;
 
         // Текущее разрешение
         std::string resolution_;

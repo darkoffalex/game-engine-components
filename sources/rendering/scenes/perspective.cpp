@@ -2,15 +2,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 #include <utils/files/load.hpp>
-#include <nuklear.h>
 #include <stb_image.h>
 
 #include "perspective.h"
 
 // Соотношение сторон экрана
 extern float g_screen_aspect;
-// UI (Nuklear) контекст
-extern nk_context* g_nk_context;
 // Включен ли UI (свободная камера доступна вы отключенном UI)
 extern bool g_use_ui;
 // Управление

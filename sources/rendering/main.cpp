@@ -4,22 +4,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
-#define NK_INCLUDE_STANDARD_VARARGS
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_DEFAULT_FONT
-#define NK_IMPLEMENTATION
-#define NK_GLFW_GL3_IMPLEMENTATION
-#define NK_KEYSTATE_BASED_INPUT
-#define NK_MAX_VERTEX_BUFFER (512 * 1024)
-#define NK_MAX_ELEMENT_BUFFER (128 * 1024)
-
-// Интерфейс nuklear
-#include <nuklear.h>
-#include "gui/nuklear_glfw_gl3.h"
+// Интерфейс ImGUI
+#include <imgui.h>
+#include "gui/imgui_impl_glfw.h"
+#include "gui/imgui_impl_opengl3.h"
 
 // Примеры
 #include "scenes/triangle.h"
@@ -41,14 +29,11 @@ float g_fps_until_next_update = 1.0f;
 
 // Список сцен
 std::vector<scenes::Base*> g_scenes = {};
-// Список имен сцен
-std::vector<const char*> g_scene_names = {};
 // Индекс текущей активной сцены
 size_t g_scene_index = 0;
 
-// UI (Nuklear) контекст
-nk_context* g_nk_context = nullptr;
-nk_glfw g_glfw = {};
+// UI (ImGUI) контекст
+ImGuiContext* g_gui_context = nullptr;
 
 // Использовать UI
 bool g_use_ui = true;
@@ -90,13 +75,13 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
 void mouse_pos_callback(GLFWwindow* window, double x_pos, double y_pos);
 
 /**
- * Инициализация UI (Nuklear)
+ * Инициализация UI (imGUI)
  * @param window Окно GLFW
  */
 void init_ui(GLFWwindow* window);
 
 /**
- * Обновление UI (Nuklear)
+ * Обновление UI (ImGUI)
  */
 void update_ui();
 
@@ -148,7 +133,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         return -1;
     }
 
-    // Инициализация UI (Nuklear)
+    // Инициализация UI (ImGUI)
     init_ui(window);
 
     // Список сцен
@@ -158,9 +143,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     g_scenes.push_back(new scenes::Perspective());
     g_scenes.push_back(new scenes::Passes());
     g_scenes.push_back(new scenes::Lighting());
-
-    // Названия сцен
-    for(auto* s : g_scenes) g_scene_names.push_back(s->name());
 
     // Загрузить необходимые ресурсы сцен-примеров
     try
@@ -209,11 +191,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Обновление UI (если нужно)
         if(g_use_ui)
         {
-            // Подготовка и обработка общих UI элементов (Nuklear)
-            nk_glfw3_new_frame(&g_glfw);
+            // Начало кадра ImGUI
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            // Подготовка и обработка общих UI элементов (ImGUI)
             update_ui();
 
-            // Подготовка и обработка UI элементов активного примера (Nuklear)
+            // Подготовка и обработка UI элементов активного примера (ImGUI)
             g_scenes[g_scene_index]->update_ui(delta);
         }
 
@@ -235,10 +221,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             // Рендеринг выбранного примера
             g_scenes[g_scene_index]->render();
 
-            // Рендеринг UI элементов (Nuklear)
+            // Рендеринг UI элементов (ImGUI)
             if(g_use_ui)
             {
-                nk_glfw3_render(&g_glfw, NK_ANTI_ALIASING_ON, NK_MAX_VERTEX_BUFFER, NK_MAX_ELEMENT_BUFFER);
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             }
         }
 
@@ -252,6 +239,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         s->unload();
         delete s;
     }
+
+    // Завершить работу с ImGUI
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // Завершить работу с GLFW
     glfwTerminate();
@@ -400,54 +392,49 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, const int wi
 }
 
 /**
- * Инициализация UI (Nuklear)
+ * Инициализация UI (ImGUI)
  * @param window Окно GLFW
  */
-void init_ui(GLFWwindow* window)
+void init_ui([[maybe_unused]] GLFWwindow* window)
 {
-    // Контекст nuklear
-    g_nk_context = nk_glfw3_init(&g_glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
+    IMGUI_CHECKVERSION();
 
-    // Шрифты
-    nk_font_atlas *atlas = nullptr;
-    nk_glfw3_font_stash_begin(&g_glfw, &atlas);
-    /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
-    nk_glfw3_font_stash_end(&g_glfw);
+    // Контекст
+    g_gui_context = ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
 
-    // Задать шрифт (раскомментировать при необходимости)
-    /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
-    /*nk_style_set_font(ctx, &droid->handle);*/
+    // Инициализация
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 150");
 }
 
 /**
- * Обновление UI (Nuklear)
+ * Обновление UI (ImGUI)
  */
 void update_ui()
 {
-    // Диалог настроек
-    if (nk_begin(
-            g_nk_context,
-            "Settings",
-            nk_rect(10, 10, 200, 150),
-            NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+    ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SetWindowPos({0,0}, ImGuiCond_Once);
+    ImGui::Text("FPS: %s", g_fps_str.c_str());
+
+    if(ImGui::BeginCombo("Scene", g_scenes[g_scene_index]->name()))
     {
-        // FPS
-        nk_layout_row_dynamic(g_nk_context, 20, 2);
-        nk_label(g_nk_context, "FPS: ", NK_TEXT_LEFT);
-        nk_label(g_nk_context, g_fps_str.c_str(), NK_TEXT_LEFT);
-
-        // Заголовок - примеры
-        nk_layout_row_dynamic(g_nk_context, 20, 1);
-        nk_label(g_nk_context, "Scene:", NK_TEXT_LEFT);
-
-        // Селектор примера
-        nk_layout_row_dynamic(g_nk_context, 25, 1);
-        g_scene_index = nk_combo(
-                g_nk_context, g_scene_names.data(),
-                (int)g_scene_names.size(),
-                (int)g_scene_index,
-                20,
-                nk_vec2(150,150));
+        for(unsigned i = 0; i < g_scenes.size(); i++)
+        {
+            bool is_selected = g_scene_index == i;
+            if(ImGui::Selectable(g_scenes[i]->name(), is_selected)) g_scene_index = i;
+            if(is_selected) ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
     }
-    nk_end(g_nk_context);
+
+    auto next_pos = ImGui::GetWindowPos();
+    next_pos.y += ImGui::GetWindowHeight();
+    ImGui::SetNextWindowPos(next_pos, ImGuiCond_Once);
+
+    ImGui::End();
 }

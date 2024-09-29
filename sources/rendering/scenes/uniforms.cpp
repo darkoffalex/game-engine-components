@@ -1,13 +1,11 @@
 #include <glm/glm.hpp>
 #include <utils/files/load.hpp>
-#include <nuklear.h>
+#include <imgui.h>
 
 #include "uniforms.h"
 
 // Соотношение сторон экрана
 extern float g_screen_aspect;
-// UI (Nuklear) контекст
-extern nk_context* g_nk_context;
 
 namespace scenes
 {
@@ -95,59 +93,20 @@ namespace scenes
      */
     void Uniforms::update_ui([[maybe_unused]] float delta)
     {
-        // Диалог настроек 1
-        if (nk_begin(
-                g_nk_context,
-                "Object 1",
-                nk_rect(10, 170, 200, 200),
-                NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+        for(unsigned i = 0; i < 2; ++i)
         {
-            // Положение - заголовок
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_label(g_nk_context, "Position:", NK_TEXT_LEFT);
+            if(ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::SliderFloat3("Position", (float*)&(positions_[i]), -5.0f, 5.0f);
+                ImGui::SliderFloat("Rotation", &angles_[i], -360.0f, 360.0f);
 
-            // Положение - поля
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_property_float(g_nk_context, "X", -10.0f, &positions_[0].x, 10.0f, 0.1f, 0.1f);
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_property_float(g_nk_context, "Y", -10.0f, &positions_[0].y, 10.0f, 0.1f, 0.1f);
+                auto next_pos = ImGui::GetWindowPos();
+                next_pos.y += ImGui::GetWindowHeight() * 2.0f + 5.0f;
+                ImGui::SetNextWindowPos(next_pos, ImGuiCond_Once);
 
-            // Поворот - заголовок
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_label(g_nk_context, "Rotation:", NK_TEXT_LEFT);
-
-            // Поворот - поле
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_property_float(g_nk_context, "Angle Z", -360.0f, &angles_[0], 360.0f, 0.15f, 0.15f);
+                ImGui::End();
+            }
         }
-        nk_end(g_nk_context);
-
-        // Диалог настроек 2
-        if (nk_begin(
-                g_nk_context,
-                "Object 2",
-                nk_rect(10, 380, 200, 200),
-                NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
-        {
-            // Положение - заголовок
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_label(g_nk_context, "Position:", NK_TEXT_LEFT);
-
-            // Положение - поля
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_property_float(g_nk_context, "X", -10.0f, &positions_[1].x, 10.0f, 0.1f, 0.1f);
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_property_float(g_nk_context, "Y", -10.0f, &positions_[1].y, 10.0f, 0.1f, 0.1f);
-
-            // Поворот - заголовок
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_label(g_nk_context, "Rotation:", NK_TEXT_LEFT);
-
-            // Поворот - поле
-            nk_layout_row_dynamic(g_nk_context, 20, 1);
-            nk_property_float(g_nk_context, "Angle Z", -360.0f, &angles_[1], 360.0f, 0.15f, 0.15f);
-        }
-        nk_end(g_nk_context);
     }
 
     /**

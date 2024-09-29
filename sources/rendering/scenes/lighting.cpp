@@ -2,15 +2,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 #include <utils/files/load.hpp>
-#include <nuklear.h>
 #include <stb_image.h>
+#include <imgui.h>
 
 #include "lighting.h"
 
 // Соотношение сторон экрана
 extern float g_screen_aspect;
-// UI (Nuklear) контекст
-extern nk_context* g_nk_context;
 // Включен ли UI (свободная камера доступна вы отключенном UI)
 extern bool g_use_ui;
 // Управление
@@ -236,77 +234,32 @@ namespace scenes
     {
         for(unsigned i = 0; i < 2; ++i)
         {
-            // Добавить диалог настроек
-            if (nk_begin(
-                    g_nk_context,
-                    i == 0 ? "Light 1" : "Light 2",
-                    nk_rect(10.0f, 170.0f + (float)(i * 210), 200.0f, 200.0f),
-                    NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+            if(ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                // Положение
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_label(g_nk_context, "Position:", NK_TEXT_LEFT);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "X", -10.0f, &light_positions_[i].x, 10.0f, 0.1f, 0.1f);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Y", -10.0f, &light_positions_[i].y, 10.0f, 0.1f, 0.1f);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Z", -10.0f, &light_positions_[i].z, 10.0f, 0.1f, 0.1f);
+                ImGui::SliderFloat3("Position", (float*)&(light_positions_[i]), -5.0f, 5.0f);
+                ImGui::SliderFloat("Fall off", &light_fall_offs_[i], 0.0f, 5.0f);
+                ImGui::SliderFloat("Hot spot", &light_hot_spots_[i], 0.0f, 5.0f);
 
-                // Затухание
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_label(g_nk_context, "Attenuation:", NK_TEXT_LEFT);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Fall off:", 0.0f, &light_fall_offs_[i], 10.0f, 0.1f, 0.1f);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Hot spot:", 0.0f, &light_hot_spots_[i], 10.0f, 0.1f, 0.1f);
+                if(ImGui::BeginCombo("Type", light_type_names_[light_types_[i]]))
+                {
+                    for(size_t j = 0; j < (size_t)ELightType::TOTAL; j++)
+                    {
+                        bool is_selected = light_types_[i] == j;
+                        if(ImGui::Selectable(light_type_names_[j], is_selected)) light_types_[i] = (int)j;
+                        if(is_selected) ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
 
-                // Тип источника
-                nk_layout_row_dynamic(g_nk_context, 20, 2);
-                nk_label(g_nk_context, "Type:", NK_TEXT_LEFT);
-                light_types_[i] = nk_combo(
-                        g_nk_context, (const char**)light_type_names_.data(),
-                        (int)light_type_names_.size(),
-                        (int)light_types_[i],
-                        20,
-                        nk_vec2(150,150));
-
-                // Направление
                 if(light_types_[i] == (GLuint)ELightType::DIRECTIONAL || light_types_[i] == (GLuint)ELightType::SPOT)
                 {
-                    nk_layout_row_dynamic(g_nk_context, 20, 1);
-                    nk_label(g_nk_context, "Direction:", NK_TEXT_LEFT);
-                    nk_layout_row_dynamic(g_nk_context, 20, 1);
-                    nk_property_float(g_nk_context, "X", -360.0f, &light_directions_[i].x, 360.0f, 0.15f, 0.15f);
-                    nk_layout_row_dynamic(g_nk_context, 20, 1);
-                    nk_property_float(g_nk_context, "Y", -360.0f, &light_directions_[i].y, 360.0f, 0.15f, 0.15f);
-                    nk_layout_row_dynamic(g_nk_context, 20, 1);
-                    nk_property_float(g_nk_context, "Z", -360.0f, &light_directions_[i].z, 360.0f, 0.15f, 0.15f);
+                    ImGui::SliderFloat3("Direction", (float*)&(light_directions_[i]), -360.0f, 360.0f);
                 }
 
-                // Цвет
-                nk_layout_row_dynamic(g_nk_context, 20, 2);
-                nk_label(g_nk_context, "Color:", NK_TEXT_LEFT);
-                nk_colorf combo_color2 = {light_colors_[i].r, light_colors_[i].g, light_colors_[i].b, 1.0f};
-                if (nk_combo_begin_color(g_nk_context, nk_rgb_cf(combo_color2), nk_vec2(200,400)))
-                {
-                    nk_layout_row_dynamic(g_nk_context, 120, 1);
-                    combo_color2 = nk_color_picker(g_nk_context, combo_color2, NK_RGBA);
+                ImGui::ColorEdit3("Color", (float*)&(light_colors_[i]));
 
-                    nk_layout_row_dynamic(g_nk_context, 25, 1);
-                    combo_color2.r = nk_propertyf(g_nk_context, "#R:", 0, combo_color2.r, 1.0f, 0.01f,0.005f);
-                    combo_color2.g = nk_propertyf(g_nk_context, "#G:", 0, combo_color2.g, 1.0f, 0.01f,0.005f);
-                    combo_color2.b = nk_propertyf(g_nk_context, "#B:", 0, combo_color2.b, 1.0f, 0.01f,0.005f);
-                    combo_color2.a = nk_propertyf(g_nk_context, "#A:", 0, combo_color2.a, 1.0f, 0.01f,0.005f);
-
-                    light_colors_[i].r = combo_color2.r;
-                    light_colors_[i].g = combo_color2.g;
-                    light_colors_[i].b = combo_color2.b;
-
-                    nk_combo_end(g_nk_context);
-                }
+                ImGui::End();
             }
-            nk_end(g_nk_context);
         }
     }
 

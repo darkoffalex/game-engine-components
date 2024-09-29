@@ -1,6 +1,6 @@
 #include <glm/glm.hpp>
 #include <utils/files/load.hpp>
-#include <nuklear.h>
+#include <imgui.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -9,8 +9,6 @@
 
 // Соотношение сторон экрана
 extern float g_screen_aspect;
-// UI (Nuklear) контекст
-extern nk_context* g_nk_context;
 
 namespace scenes
 {
@@ -156,28 +154,16 @@ namespace scenes
     {
         for(unsigned i = 0; i < 2; ++i)
         {
-            // Добавить диалог настроек
-            if (nk_begin(
-                    g_nk_context,
-                    i == 0 ? "Object 1" : "Object 2",
-                    nk_rect(10.0f, 170.0f + (float)(i * 210), 200.0f, 200.0f),
-                    NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
-            {
-                // Положение
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Offset X", -10.0f, &uv_offsets_[i].x, 10.0f, 0.01f, 0.01f);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Offset Y", -10.0f, &uv_offsets_[i].y, 10.0f, 0.01f, 0.01f);
-                // Масштаб
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Scale X", -10.0f, &uv_scales_[i].x, 10.0f, 0.05f, 0.05f);
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Scale y", -10.0f, &uv_scales_[i].y, 10.0f, 0.05f, 0.05f);
-                // Поворот
-                nk_layout_row_dynamic(g_nk_context, 20, 1);
-                nk_property_float(g_nk_context, "Angle", -360.0f, &uv_angles_[i], 360.0f, 0.15f, 0.15f);
-            }
-            nk_end(g_nk_context);
+            ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::SliderFloat2("UV Offset", (float*)&(uv_offsets_[i]), -2.0f, 2.0f);
+            ImGui::SliderFloat2("UV Scale", (float*)&(uv_scales_[i]), -2.0f, 2.0f);
+            ImGui::SliderFloat("Angle", (float*)&(uv_angles_[i]), -360.0f, 360.0f);
+
+            auto next_pos = ImGui::GetWindowPos();
+            next_pos.y += ImGui::GetWindowHeight() * 2.0f + 30.0f;
+            ImGui::SetNextWindowPos(next_pos, ImGuiCond_Once);
+
+            ImGui::End();
         }
     }
 
