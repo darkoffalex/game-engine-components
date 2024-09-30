@@ -260,8 +260,8 @@ namespace scenes
 
                 ImGui::SetWindowSize({220.0f, 180.0f}, ImGuiCond_Once);
                 ImGui::SetNextWindowPos({0, ImGui::GetWindowPos().y + 180.0f }, ImGuiCond_Once);
-                ImGui::End();
             }
+            ImGui::End();
         }
     }
 
