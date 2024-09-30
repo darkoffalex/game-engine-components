@@ -154,15 +154,13 @@ namespace scenes
     {
         for(unsigned i = 0; i < 2; ++i)
         {
-            ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr);
             ImGui::SliderFloat2("UV Offset", (float*)&(uv_offsets_[i]), -2.0f, 2.0f);
             ImGui::SliderFloat2("UV Scale", (float*)&(uv_scales_[i]), -2.0f, 2.0f);
             ImGui::SliderFloat("Angle", (float*)&(uv_angles_[i]), -360.0f, 360.0f);
 
-            auto next_pos = ImGui::GetWindowPos();
-            next_pos.y += ImGui::GetWindowHeight() * 2.0f + 30.0f;
-            ImGui::SetNextWindowPos(next_pos, ImGuiCond_Once);
-
+            ImGui::SetWindowSize({220.0f, 100.0f}, ImGuiCond_Once);
+            ImGui::SetNextWindowPos({0, ImGui::GetWindowPos().y + 100.0f }, ImGuiCond_Once);
             ImGui::End();
         }
     }

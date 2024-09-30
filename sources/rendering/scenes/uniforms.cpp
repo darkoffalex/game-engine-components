@@ -95,15 +95,13 @@ namespace scenes
     {
         for(unsigned i = 0; i < 2; ++i)
         {
-            if(ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            if(ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr))
             {
                 ImGui::SliderFloat3("Position", (float*)&(positions_[i]), -5.0f, 5.0f);
                 ImGui::SliderFloat("Rotation", &angles_[i], -360.0f, 360.0f);
 
-                auto next_pos = ImGui::GetWindowPos();
-                next_pos.y += ImGui::GetWindowHeight() * 2.0f + 5.0f;
-                ImGui::SetNextWindowPos(next_pos, ImGuiCond_Once);
-
+                ImGui::SetWindowSize({220.0f, 100.0f}, ImGuiCond_Once);
+                ImGui::SetNextWindowPos({0, ImGui::GetWindowPos().y + 100.0f }, ImGuiCond_Once);
                 ImGui::End();
             }
         }

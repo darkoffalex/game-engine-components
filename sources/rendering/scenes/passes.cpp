@@ -146,9 +146,9 @@ namespace scenes
      */
     void Passes::update_ui([[maybe_unused]] float delta)
     {
-        if(ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        if(ImGui::Begin("Frame buffer", nullptr))
         {
-            if(ImGui::BeginCombo("Scale:", scale_names_[scale_index_]))
+            if(ImGui::BeginCombo("Scale", scale_names_[scale_index_]))
             {
                 for(size_t i = 0; i < scale_names_.size(); i++)
                 {
@@ -162,6 +162,8 @@ namespace scenes
             ImGui::Text("Resolution: %s", resolution_.c_str());
             ImGui::Checkbox("Filtering", &filter_);
 
+            ImGui::SetWindowSize({200.0f, 100.0f}, ImGuiCond_Once);
+            ImGui::SetNextWindowPos({0, ImGui::GetWindowPos().y + 100.0f }, ImGuiCond_Once);
             ImGui::End();
         }
     }

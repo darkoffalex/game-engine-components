@@ -234,7 +234,7 @@ namespace scenes
     {
         for(unsigned i = 0; i < 2; ++i)
         {
-            if(ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            if(ImGui::Begin(i == 0 ? "Light 1" : "Light 2", nullptr))
             {
                 ImGui::SliderFloat3("Position", (float*)&(light_positions_[i]), -5.0f, 5.0f);
                 ImGui::SliderFloat("Fall off", &light_fall_offs_[i], 0.0f, 5.0f);
@@ -258,6 +258,8 @@ namespace scenes
 
                 ImGui::ColorEdit3("Color", (float*)&(light_colors_[i]));
 
+                ImGui::SetWindowSize({220.0f, 180.0f}, ImGuiCond_Once);
+                ImGui::SetNextWindowPos({0, ImGui::GetWindowPos().y + 180.0f }, ImGuiCond_Once);
                 ImGui::End();
             }
         }
