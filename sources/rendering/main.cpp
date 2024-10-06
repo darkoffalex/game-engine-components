@@ -10,12 +10,12 @@
 #include "gui/imgui_impl_opengl3.h"
 
 // Примеры
-#include "scenes/triangle.h"
-#include "scenes/uniforms.h"
-#include "scenes/textures.h"
-#include "scenes/perspective.h"
-#include "scenes/passes.h"
-#include "scenes/lighting.h"
+#include "scenes/01-triangle/triangle.h"
+#include "scenes/02-uniforms/uniforms.h"
+#include "scenes/03-textures/textures.h"
+#include "scenes/04-perspective/perspective.h"
+#include "scenes/05-passes/passes.h"
+#include "scenes/06-lighting/lighting.h"
 
 // Экран
 float g_screen_aspect = 1.0f;
@@ -28,12 +28,12 @@ std::string g_fps_str;
 float g_fps_until_next_update = 1.0f;
 
 // Список сцен
-std::vector<scenes::Base*> g_scenes = {};
+std::vector<scenes::Scene*> g_scenes = {};
 // Индекс текущей активной сцены
 size_t g_scene_index = 0;
 
 // UI (ImGUI) контекст
-ImGuiContext* g_gui_context = nullptr;
+[[maybe_unused]] ImGuiContext* g_gui_context = nullptr;
 
 // Использовать UI
 bool g_use_ui = true;

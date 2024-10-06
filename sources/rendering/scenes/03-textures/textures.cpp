@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #include <utils/files/load.hpp>
+#include <utils/geometry/generate.hpp>
 #include <imgui.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -49,14 +50,15 @@ namespace scenes
 
         // Геометрия
         {
-            // Данные о геометрии (хардкод, обычно загружается из файлов)
-            const std::vector<GLuint> indices = {0,1,2, 2,3,0};
-            const std::vector<Vertex> vertices = {
-                    {{-1.0f, -1.0f, 0.0f},{0.0f, 0.0f}},
-                    {{-1.0f, 1.0f, 0.0f},{0.0f, 1.0f}},
-                    {{1.0f, 1.0f, 0.0f},{1.0f, 1.0f}},
-                    {{1.0f, -1.0f, 0.0f},{1.0f, 0.0f}},
-            };
+            // Данные о геометрии (обычно загружается из файлов)
+            using utils::geometry::EAttrBit;
+            std::vector<GLuint> indices = {};
+            std::vector<Vertex> vertices = utils::geometry::gen_quad<Vertex>(
+                    2.0f,
+                    EAttrBit::POSITION|EAttrBit::UV,
+                    offsetof(Vertex, position),
+                    offsetof(Vertex, uv),0,0,
+                    &indices);
 
             // Описание атрибутов шейдера
             const std::vector<utils::gl::VertexAttributeInfo> attributes = {

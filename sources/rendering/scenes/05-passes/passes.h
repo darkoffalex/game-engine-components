@@ -1,10 +1,10 @@
 #pragma once
 
-#include <utils/gl/shader.hpp>
-#include <utils/gl/geometry.hpp>
-#include <utils/gl/frame-buffer.hpp>
+#include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
+#include "utils/gl/frame-buffer.hpp"
 
-#include "base.h"
+#include "../scene.h"
 
 namespace scenes
 {
@@ -12,7 +12,7 @@ namespace scenes
      * Пример отображения треугольника в два прохода
      * Первый проход пишет информацию в первичный экранный буфер, второй выводит результат в конечный буфер
      */
-    class Passes : public Base
+    class Passes : public Scene
     {
     public:
         /**

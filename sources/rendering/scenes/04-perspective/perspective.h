@@ -1,27 +1,28 @@
 #pragma once
 
-#include <utils/gl/shader.hpp>
-#include <utils/gl/geometry.hpp>
+#include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
+#include "utils/gl/texture-2d.hpp"
 
-#include "base.h"
+#include "../scene.h"
 
 namespace scenes
 {
     /**
-     * Пример использования uniform переменных
-     * В данном примере задействована матрица проекции и две матрицы модели/трансформации
+     * Пример перспективной проекции
+     * Отображение вращающихся кубов
      */
-    class Uniforms : public Base
+    class Perspective : public Scene
     {
     public:
         /**
          * Описание одиночной вершины
-         * В данном примере используется только положение и цвет
+         * В данном примере используется только положение и UV координаты
          */
         struct Vertex
         {
             glm::vec3 position;
-            glm::vec3 color;
+            glm::vec2 uv;
         };
 
         /**
@@ -30,13 +31,15 @@ namespace scenes
          */
         struct ShaderUniforms
         {
-            GLint transform;
+            GLint model;
+            GLint view;
             GLint projection;
+            GLint texture;
         };
 
     public:
-        Uniforms();
-        ~Uniforms() override;
+        Perspective();
+        ~Perspective() override;
 
         /**
          * Загрузка шейдеров, геометрии
@@ -50,20 +53,20 @@ namespace scenes
         void unload() override;
 
         /**
-         * В данном примере задаются 2 трансформации а также проекция
+         * В данном примере отсутствует обновление данных
          * @param delta Временная дельта кадра
          */
         void update(float delta) override;
 
         /**
-         * В данном примере есть диалоговые окна параметров
+         * В данном примере отсутствует свой UI
          * @param delta Временная дельта кадра
          */
         void update_ui(float delta) override;
 
         /**
          * Рисование сцены
-         * В данном примере рисуются 2 квадрата с разными цветами вершин
+         * В данном примере всего один вызов отрисовки
          */
         void render() override;
 
@@ -77,14 +80,24 @@ namespace scenes
         // Ресурсы
         utils::gl::Shader<ShaderUniforms, GLint> shader_;
         utils::gl::Geometry<Vertex> geometry_;
+        utils::gl::Texture2D texture_;
 
-        // Матрицы для передачи шейдеру
+        // Матрицы для преобразования вершин
         glm::mat4 projection_;
-        glm::mat4 transforms_[2];
+        glm::mat4 view_;
+        glm::mat4 model_[2];
 
-        // Положения, масштабы и прочие данные для построения/обновления матриц
-        glm::vec3 positions_[2];
-        glm::vec3 scales_[2];
-        float angles_[2];
+        // Пространственные параметры объектов
+        glm::vec3 camera_pos_;
+        glm::vec3 object_pos_[2];
+        glm::vec3 object_scale_[2];
+        glm::vec3 object_rotation_[2];
+
+        // Параметры для построения матрицы проекции
+        GLfloat z_far_, z_near_, fov_;
+
+        // Доп параметры для управления камерой
+        GLfloat cam_yaw_, cam_pitch_, cam_sensitivity_, cam_speed_;
+        glm::vec3 cam_movement_;
     };
 }

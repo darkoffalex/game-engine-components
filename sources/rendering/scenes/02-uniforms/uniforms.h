@@ -1,17 +1,17 @@
 #pragma once
 
-#include <utils/gl/shader.hpp>
-#include <utils/gl/geometry.hpp>
+#include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
 
-#include "base.h"
+#include "../scene.h"
 
 namespace scenes
 {
     /**
-     * Пример отображения треугольника
-     * Простейший пример отображающий простейшую геометрию (треугольник)
+     * Пример использования uniform переменных
+     * В данном примере задействована матрица проекции и две матрицы модели/трансформации
      */
-    class Triangle : public Base
+    class Uniforms : public Scene
     {
     public:
         /**
@@ -26,14 +26,17 @@ namespace scenes
 
         /**
          * Идентификатор uniform переменных в шейдере
-         * Используется при инициализации шейдера (в данном примере нет uniform переменных)
+         * Используется при инициализации шейдера
          */
         struct ShaderUniforms
-        {};
+        {
+            GLint transform;
+            GLint projection;
+        };
 
     public:
-        Triangle() = default;
-        ~Triangle() override;
+        Uniforms();
+        ~Uniforms() override;
 
         /**
          * Загрузка шейдеров, геометрии
@@ -47,20 +50,20 @@ namespace scenes
         void unload() override;
 
         /**
-         * В данном примере отсутствует обновление данных
+         * В данном примере задаются 2 трансформации а также проекция
          * @param delta Временная дельта кадра
          */
         void update(float delta) override;
 
         /**
-         * В данном примере отсутствует свой UI
+         * В данном примере есть диалоговые окна параметров
          * @param delta Временная дельта кадра
          */
         void update_ui(float delta) override;
 
         /**
          * Рисование сцены
-         * В данном примере всего один вызов отрисовки
+         * В данном примере рисуются 2 квадрата с разными цветами вершин
          */
         void render() override;
 
@@ -74,5 +77,14 @@ namespace scenes
         // Ресурсы
         utils::gl::Shader<ShaderUniforms, GLint> shader_;
         utils::gl::Geometry<Vertex> geometry_;
+
+        // Матрицы для передачи шейдеру
+        glm::mat4 projection_;
+        glm::mat4 transforms_[2];
+
+        // Положения, масштабы и прочие данные для построения/обновления матриц
+        glm::vec3 positions_[2];
+        glm::vec3 scales_[2];
+        float angles_[2];
     };
 }

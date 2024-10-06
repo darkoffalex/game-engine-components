@@ -6,19 +6,19 @@ add_executable("Rendering"
         gui/imgui_impl_glfw.cpp
         gui/imgui_impl_opengl3.cpp
 
-        scenes/base.h
-        scenes/triangle.h
-        scenes/triangle.cpp
-        scenes/uniforms.h
-        scenes/uniforms.cpp
-        scenes/textures.h
-        scenes/textures.cpp
-        scenes/perspective.h
-        scenes/perspective.cpp
-        scenes/passes.h
-        scenes/passes.cpp
-        scenes/lighting.h
-        scenes/lighting.cpp
+        scenes/scene.h
+        scenes/01-triangle/triangle.h
+        scenes/01-triangle/triangle.cpp
+        scenes/02-uniforms/uniforms.h
+        scenes/02-uniforms/uniforms.cpp
+        scenes/03-textures/textures.h
+        scenes/03-textures/textures.cpp
+        scenes/04-perspective/perspective.h
+        scenes/04-perspective/perspective.cpp
+        scenes/05-passes/passes.h
+        scenes/05-passes/passes.cpp
+        scenes/06-lighting/lighting.h
+        scenes/06-lighting/lighting.cpp
 )
 
 # Конфигурация и флаги по умолчанию

@@ -5,13 +5,13 @@ namespace scenes
     /**
      * Базовый виртуальный класс (интерфейс) сцены
      */
-    class Base
+    class Scene
     {
     public:
         /**
          * Виртуальный деструктор
          */
-        virtual ~Base() = default;
+        virtual ~Scene() = default;
 
         /**
          * Загрузка всех необходимых ресурсов граф. API

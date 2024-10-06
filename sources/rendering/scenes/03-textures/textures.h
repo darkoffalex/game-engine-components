@@ -1,18 +1,17 @@
 #pragma once
 
-#include <utils/gl/shader.hpp>
-#include <utils/gl/geometry.hpp>
-#include <utils/gl/texture-2d.hpp>
+#include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
+#include "utils/gl/texture-2d.hpp"
 
-#include "base.h"
+#include "../scene.h"
 
 namespace scenes
 {
     /**
-     * Пример перспективной проекции
-     * Отображение вращающихся кубов
+     * Пример загрузки и использования текстур
      */
-    class Perspective : public Base
+    class Textures : public Scene
     {
     public:
         /**
@@ -31,18 +30,18 @@ namespace scenes
          */
         struct ShaderUniforms
         {
-            GLint model;
-            GLint view;
+            GLint transform;
             GLint projection;
+            GLint texture_mapping;
             GLint texture;
         };
 
     public:
-        Perspective();
-        ~Perspective() override;
+        Textures();
+        ~Textures() override;
 
         /**
-         * Загрузка шейдеров, геометрии
+         * Загрузка шейдеров, геометрии, текстур
          * Геометрия в данном примере hardcoded, остальное загружается из файлов
          */
         void load() override;
@@ -53,7 +52,7 @@ namespace scenes
         void unload() override;
 
         /**
-         * В данном примере отсутствует обновление данных
+         * В данном примере задаются 2 трансформации а также проекция
          * @param delta Временная дельта кадра
          */
         void update(float delta) override;
@@ -66,7 +65,7 @@ namespace scenes
 
         /**
          * Рисование сцены
-         * В данном примере всего один вызов отрисовки
+         * В данном примере рисуются 2 квадрата с разными текстурами
          */
         void render() override;
 
@@ -80,24 +79,17 @@ namespace scenes
         // Ресурсы
         utils::gl::Shader<ShaderUniforms, GLint> shader_;
         utils::gl::Geometry<Vertex> geometry_;
-        utils::gl::Texture2D texture_;
+        utils::gl::Texture2D textures_[2];
 
-        // Матрицы для преобразования вершин
+        // Матрицы для передачи шейдеру
         glm::mat4 projection_;
-        glm::mat4 view_;
-        glm::mat4 model_[2];
+        glm::mat4 transforms_[2];
+        glm::mat3 uv_transform_[2];
 
-        // Пространственные параметры объектов
-        glm::vec3 camera_pos_;
-        glm::vec3 object_pos_[2];
-        glm::vec3 object_scale_[2];
-        glm::vec3 object_rotation_[2];
-
-        // Параметры для построения матрицы проекции
-        GLfloat z_far_, z_near_, fov_;
-
-        // Доп параметры для управления камерой
-        GLfloat cam_yaw_, cam_pitch_, cam_sensitivity_, cam_speed_;
-        glm::vec3 cam_movement_;
+        // Положения, масштабы и прочие данные для построения/обновления матриц
+        glm::vec2 uv_offsets_[2];
+        glm::vec2 uv_scales_[2];
+        float uv_angles_[2];
+        GLint uv_wrap_[2];
     };
 }

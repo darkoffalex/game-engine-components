@@ -69,7 +69,7 @@ namespace scenes
             // Создать OpenGL ресурс шейдера из исходников
             shader_secondary_ = utils::gl::Shader<ShaderUniformsSecondary, GLint>(shader_sources, {"frame_texture"});
 
-            // Данные о геометрии (хардкод, обычно загружается из файлов)
+            // Данные о геометрии (обычно загружается из файлов)
             const std::vector<GLuint> indices = {0,1,2, 2,3,0};
             const std::vector<VertexSecondary> vertices = {
                     {{-1.0f, -1.0f, 0.0f},{0.0f, 0.0f}},

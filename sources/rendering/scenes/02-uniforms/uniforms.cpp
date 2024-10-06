@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #include <utils/files/load.hpp>
+#include <utils/geometry/generate.hpp>
 #include <imgui.h>
 
 #include "uniforms.h"
@@ -34,14 +35,15 @@ namespace scenes
         // Создать OpenGL ресурс шейдера из исходников
         shader_ = utils::gl::Shader<ShaderUniforms, GLint>(shader_sources,{"transform", "projection"});
 
-        // Данные о геометрии (хардкод, обычно загружается из файлов)
-        const std::vector<GLuint> indices = {0,1,2, 2,3,0};
-        const std::vector<Vertex> vertices = {
-                {{-1.0f, -1.0f, 0.0f},{1.0f, 0.0f,0.0f}},
-                {{-1.0f, 1.0f, 0.0f},{0.0f, 1.0f,0.0f}},
-                {{1.0f, 1.0f, 0.0f},{0.0f, 0.0f,1.0f}},
-                {{1.0f, -1.0f, 0.0f},{1.0f, 1.0f,0.0f}},
-        };
+        // Данные о геометрии (обычно загружается из файлов)
+        using utils::geometry::EAttrBit;
+        std::vector<GLuint> indices = {};
+        std::vector<Vertex> vertices = utils::geometry::gen_quad<Vertex>(
+                2.0f,
+                EAttrBit::POSITION|EAttrBit::COLOR,
+                offsetof(Vertex, position),0,0,
+                offsetof(Vertex, color),
+                &indices);
 
         // Описание атрибутов шейдера
         const std::vector<utils::gl::VertexAttributeInfo> attributes = {
@@ -97,7 +99,7 @@ namespace scenes
         {
             if(ImGui::Begin(i == 0 ? "Object 1" : "Object 2", nullptr))
             {
-                ImGui::SliderFloat3("Position", (float*)&(positions_[i]), -5.0f, 5.0f);
+                ImGui::SliderFloat3("Position", (float*)&(positions_[i]), -2.0f, 2.0f);
                 ImGui::SliderFloat("Rotation", &angles_[i], -360.0f, 360.0f);
 
                 ImGui::SetWindowSize({220.0f, 100.0f}, ImGuiCond_Once);

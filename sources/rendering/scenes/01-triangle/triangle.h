@@ -1,47 +1,42 @@
 #pragma once
 
-#include <utils/gl/shader.hpp>
-#include <utils/gl/geometry.hpp>
-#include <utils/gl/texture-2d.hpp>
+#include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
 
-#include "base.h"
+#include "../scene.h"
 
 namespace scenes
 {
     /**
-     * Пример загрузки и использования текстур
+     * Пример отображения треугольника
+     * Простейший пример отображающий простейшую геометрию (треугольник)
      */
-    class Textures : public Base
+    class Triangle : public Scene
     {
     public:
         /**
          * Описание одиночной вершины
-         * В данном примере используется только положение и UV координаты
+         * В данном примере используется только положение и цвет
          */
         struct Vertex
         {
             glm::vec3 position;
-            glm::vec2 uv;
+            glm::vec3 color;
         };
 
         /**
          * Идентификатор uniform переменных в шейдере
-         * Используется при инициализации шейдера
+         * Используется при инициализации шейдера (в данном примере нет uniform переменных)
          */
         struct ShaderUniforms
-        {
-            GLint transform;
-            GLint projection;
-            GLint texture_mapping;
-            GLint texture;
-        };
+        {};
 
     public:
-        Textures();
-        ~Textures() override;
+        Triangle() = default;
+        ~Triangle() override;
 
         /**
-         * Загрузка шейдеров, геометрии, текстур
+         * Загрузка шейдеров, геометрии
          * Геометрия в данном примере hardcoded, остальное загружается из файлов
          */
         void load() override;
@@ -52,7 +47,7 @@ namespace scenes
         void unload() override;
 
         /**
-         * В данном примере задаются 2 трансформации а также проекция
+         * В данном примере отсутствует обновление данных
          * @param delta Временная дельта кадра
          */
         void update(float delta) override;
@@ -65,7 +60,7 @@ namespace scenes
 
         /**
          * Рисование сцены
-         * В данном примере рисуются 2 квадрата с разными текстурами
+         * В данном примере всего один вызов отрисовки
          */
         void render() override;
 
@@ -79,17 +74,5 @@ namespace scenes
         // Ресурсы
         utils::gl::Shader<ShaderUniforms, GLint> shader_;
         utils::gl::Geometry<Vertex> geometry_;
-        utils::gl::Texture2D textures_[2];
-
-        // Матрицы для передачи шейдеру
-        glm::mat4 projection_;
-        glm::mat4 transforms_[2];
-        glm::mat3 uv_transform_[2];
-
-        // Положения, масштабы и прочие данные для построения/обновления матриц
-        glm::vec2 uv_offsets_[2];
-        glm::vec2 uv_scales_[2];
-        float uv_angles_[2];
-        GLint uv_wrap_[2];
     };
 }

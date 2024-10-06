@@ -1,10 +1,10 @@
 #pragma once
 
-#include <utils/gl/shader.hpp>
-#include <utils/gl/geometry.hpp>
-#include <utils/gl/texture-2d.hpp>
+#include "utils/gl/shader.hpp"
+#include "utils/gl/geometry.hpp"
+#include "utils/gl/texture-2d.hpp"
 
-#include "base.h"
+#include "../scene.h"
 
 namespace scenes
 {
@@ -12,7 +12,7 @@ namespace scenes
      * Пример простого освещение
      * Сцена из нескольких кубов и источников света
      */
-    class Lighting : public Base
+    class Lighting : public Scene
     {
     public:
         /**
